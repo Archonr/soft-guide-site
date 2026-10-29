@@ -5,6 +5,7 @@ import {tmpdir} from 'node:os';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {spawnSync} from 'node:child_process';
+import {runInNewContext} from 'node:vm';
 
 const root=fileURLToPath(new URL('../',import.meta.url));
 const fixture=await mkdtemp(path.join(tmpdir(),'soft-guide-test-'));
@@ -48,16 +49,28 @@ test('public checkout builds without personal review contacts and has an honest 
 test('all themes have usable direct links and original matching assets',async()=>{
  const home=await output('index.html');
  assert.match(home,/data-default-theme="blue"/);
- for(const theme of ['blue','midnight','glacier','amethyst','coral','sage']){
-  assert.ok(home.includes(`href="?theme=${theme}"`));
+ for(const theme of ['blue','glacier']){
+  assert.ok(home.includes(`data-set-theme="${theme}"`));
   assert.match(await readFile(path.join(fixture,'dist','assets',`mark-${theme}.svg`),'utf8'),/<svg/);
  }
+});
+
+test('first visits use light and obsolete or unavailable saved themes fall back safely',async()=>{
+ const script=await readFile(path.join(root,'public/assets/enhance.js'),'utf8');
+ for(const [search,saved,expected] of [['',null,'blue'],['','glacier','glacier'],['','coral','blue'],['?theme=blue','glacier','blue'],['?theme=glacier',null,'glacier']]){
+  const html={dataset:{defaultTheme:'blue'},classList:{add(){}}};
+  runInNewContext(script,{document:{documentElement:html},location:{search},URLSearchParams,localStorage:{getItem(){return saved},setItem(){}}});
+  assert.equal(html.dataset.theme,expected);
+ }
+ const html={dataset:{defaultTheme:'blue'},classList:{add(){}}};
+ runInNewContext(script,{document:{documentElement:html},location:{search:''},URLSearchParams,localStorage:{getItem(){throw Error('Unavailable')},setItem(){throw Error('Unavailable')}}});
+ assert.equal(html.dataset.theme,'blue');
 });
 
 test('release refuses unapproved content; approved release ignores local-only data',async()=>{
  let result=run('--release'); assert.notEqual(result.status,0); assert.match(result.stderr,/Release blocked/);
  const config=JSON.parse(await readFile(path.join(fixture,'config/site.json'),'utf8'));
- Object.assign(config,{businessEmail:'contact@softguide.dev',contactsApproved:true,contentApproved:true,resumeApproved:true,allowIndexing:true,theme:'midnight'});
+ Object.assign(config,{businessEmail:'contact@softguide.dev',contactsApproved:true,contentApproved:true,resumeApproved:true,allowIndexing:true,theme:'glacier'});
  await writeFile(path.join(fixture,'config/site.json'),JSON.stringify(config));
  const {mkdir}=await import('node:fs/promises');
  await mkdir(path.join(fixture,'.local'));
@@ -65,8 +78,10 @@ test('release refuses unapproved content; approved release ignores local-only da
  result=run('--release'); assert.equal(result.status,0,result.stderr);
  const home=await output('index.html'),contact=await output('contact.html');
  assert.doesNotMatch(home,/DESIGN PREVIEW/);
+ assert.match(home,/aria-label="Color theme"/);
+ assert.match(home,/data-set-theme="glacier"/);
  assert.match(home,/<link rel="canonical" href="https:\/\/softguide.dev\/">/);
- assert.match(home,/data-default-theme="midnight"/);
+ assert.match(home,/data-default-theme="glacier"/);
  assert.match(home,/content="index,follow"/);
  assert.match(contact,/contact@softguide.dev/);
  assert.doesNotMatch(contact,/private@example.org|421000000000/);

@@ -1,38 +1,18 @@
-SOFT GUIDE — DESIGN OPTIONS
+SOFT GUIDE — SELECTED IDENTITY
 
-Identity: two open brackets form a stable frame; a rising directional arrow
-represents guidance and forward movement. Flat SVG geometry remains legible
-at favicon size. No third-party marks were traced.
+Two themes remain: Blue / Light (default) and Glacier / Dark.
 
-Blue / Light (current default)
+Blue / Light
 Background #F3F5FA; ink #172B4A; accent #2455C7; pale blue #DCE7FF.
-Clean, restrained technical consultancy identity.
-
-Midnight / Dark
-Background #11151B; text #ECEEF4; muted #B0B9C7; amber #EDC28C.
-Dark surfaces and warm highlights; avoids neon-green security clichés.
-
-Sage / Original
-Background #F6F5EE; ink #203C32; lime #D4EF85.
-Retained for comparison at the owner's request for alternatives.
-
-System Arial/Helvetica for body and headings; Georgia italic for the hero's
-single emphasized word; Consolas/Courier for compact technical labels.
-No remote font requests. Page structure is shared across color options.
-
-mark.svg, wordmark.svg and social.svg preserve the original concept.
-mark-blue.svg, mark-midnight.svg and mark-sage.svg match the preview themes.
-Finalize the selected wordmark/social palette before external brand use.
 
 Glacier / Dark
 Background #101722; text #EDF2FA; ice-blue accent #91C7F2.
-An additional dark option with cool highlights instead of amber.
-mark-glacier.svg matches this palette.
 
-Amethyst / Dark
-Background #15131d; text #f1eef9; accent #c3b1fa.
-Matching logo: mark-amethyst.svg.
+The header Light / Dark control changes the theme instantly and remembers
+the visitor's choice. First visits default to light. Other exploratory
+palettes have been removed from the current implementation.
 
-Coral / Dark
-Background #1b1417; text #f9eff1; accent #f2a69a.
-Matching logo: mark-coral.svg.
+The original direction-arrow identity is retained. mark-blue.svg and
+mark-glacier.svg are the active theme assets; mark.svg, wordmark.svg and
+social.svg use the selected Blue identity. All are original vector assets.
+System Arial/Helvetica, Georgia italic and Consolas/Courier; no remote fonts.

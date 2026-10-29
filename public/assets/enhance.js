@@ -1,6 +1,6 @@
 document.documentElement.classList.add('js');
 (() => {
-  const allowed = ['blue', 'midnight', 'glacier', 'amethyst', 'coral', 'sage'];
+  const allowed = ['blue', 'glacier'];
   let theme = new URLSearchParams(location.search).get('theme');
   if (!allowed.includes(theme)) {
     try { theme = localStorage.getItem('soft-guide-theme'); } catch {}

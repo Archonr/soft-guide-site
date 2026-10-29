@@ -6,7 +6,7 @@ English corporate website for Soft Guide, focused on hands-on DevOps, AWS infras
 
 Local review only. The owner authorized a public source repository after initially requesting a private one. That permission does **not** authorize public deployment. No GitHub Pages, hosting, DNS records, or automatic deployment workflow is configured. The owner reports purchasing `softguide.dev` at Namecheap on 29 October 2026. The origin is configured, but this does not verify registration, DNS, or live hosting.
 
-Default builds show a design comparison bar and block search indexing. Robots directives are not access control: do not upload review builds to a public host. Keep this repository separate from all financial, accounting, tax, identity, and client materials in its parent workspace.
+Default review builds block search indexing. Robots directives are not access control: do not upload review builds to a public host. Keep this repository separate from all financial, accounting, tax, identity, and client materials in its parent workspace.
 
 ## Run locally
 
@@ -20,20 +20,14 @@ node scripts/serve.mjs
 
 Open `http://127.0.0.1:4173`. The preview binds only to the local computer. Stop it with Ctrl+C. You can also open `dist/index.html` directly, although browser restrictions and storage behavior vary for local files. No command in this project deploys anything.
 
-## Compare designs
+## Light and dark themes
 
-The local comparison bar offers:
+The header has a keyboard-accessible Light / Dark control on every page, including release builds. Light uses Blue; Dark uses Glacier. The initial default is light, independent of operating-system preference. A valid explicit theme URL takes precedence over a saved preference. Choices update instantly and are saved locally when permitted; navigation also preserves the choice if storage is unavailable. Old experimental themes fall back to Blue.
 
-| Design | Palette | Direct local URL |
-| --- | --- | --- |
-| Blue / Light | Cool white, navy, cobalt | `http://127.0.0.1:4173/?theme=blue` |
-| Midnight / Dark | Charcoal, pale text, amber | `http://127.0.0.1:4173/?theme=midnight` |
-| Glacier / Dark | Deep blue-charcoal, ice-blue accents | `http://127.0.0.1:4173/?theme=glacier` |
-| Amethyst / Dark | Purple charcoal, lavender | `http://127.0.0.1:4173/?theme=amethyst` |
-| Coral / Dark | Warm charcoal, soft coral | `http://127.0.0.1:4173/?theme=coral` |
-| Sage / Original | Warm white, forest, lime | `http://127.0.0.1:4173/?theme=sage` |
+- Light: `http://127.0.0.1:4173/?theme=blue`
+- Dark: `http://127.0.0.1:4173/?theme=glacier`
 
-Theme selection applies across all pages, including the logo, panels, forms, buttons, and footer. A URL parameter takes precedence over a saved preference. Storage failure is tolerated; links retain the design parameter. The default is `blue`, configured in `config/site.json`. The comparison bar is excluded from release builds.
+Without JavaScript, the configured light theme remains usable and the inactive switch is hidden. Print styles use a light palette. Logos, panels, forms, and navigation follow the selected theme.
 
 ## Project structure
 
@@ -63,7 +57,7 @@ Before setting `resumeApproved`, replace placeholders with verified history or c
 Before publication, review the actual generated pages and set these values deliberately in `config/site.json`:
 
 - `origin`: `https://softguide.dev`, without trailing slash.
-- `theme`: the selected design (`blue`, `midnight`, `glacier`, `amethyst`, `coral`, or `sage`).
+- `theme`: the selected design (`blue` or `glacier`; keep `blue` for the first-visit default).
 - `businessEmail`: a real, working, approved address.
 - `phone`: only if approved for publication.
 - `contactsApproved`, `contentApproved`, `resumeApproved`: `true` only after owner review.
@@ -73,7 +67,7 @@ Before publication, review the actual generated pages and set these values delib
 node scripts/build.mjs --release
 ```
 
-The release gate rejects incomplete approvals and ignores `.local/preview.json`. A release build removes the review toolbar and CV draft sections and creates canonical URLs and a sitemap. This is only a build; hosting and DNS still need separate authorization and setup. Configure the eventual host for HTTPS, security headers, a 404 response, and a single preferred hostname. The preview server is a local QA tool, not a production server.
+The release gate rejects incomplete approvals and ignores `.local/preview.json`. A release build removes CV draft sections and creates canonical URLs and a sitemap. This is only a build; hosting and DNS still need separate authorization and setup. Configure the eventual host for HTTPS, security headers, a 404 response, and a single preferred hostname. The preview server is a local QA tool, not a production server.
 
 Page titles, descriptions, language, canonical URLs, Open Graph text, and Organization structured data are included. Original social artwork is provided as SVG source; a widely supported raster social preview should be exported and its absolute URL configured if social image previews are required. No raster Open Graph image is claimed to be integrated.
 

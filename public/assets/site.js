@@ -1,27 +1,36 @@
-const theme = document.documentElement.dataset.theme;
-document.querySelectorAll('[data-theme-choice]').forEach(link => {
-  const selected = link.dataset.themeChoice === theme;
-  link.setAttribute('aria-current', String(selected));
-  const url = new URL(location.href);
-  url.searchParams.set('theme', link.dataset.themeChoice);
-  link.href = url.href;
+function applyTheme(theme) {
+  document.documentElement.dataset.theme = theme;
+  document.querySelectorAll('[data-set-theme]').forEach(button => {
+    button.setAttribute('aria-pressed', String(button.dataset.setTheme === theme));
+  });
+  document.querySelectorAll('img[data-brand-mark]').forEach(img => {
+    img.src = `assets/mark-${theme}.svg`;
+  });
+  const favicon = document.querySelector('link[rel="icon"]');
+  if (favicon) favicon.href = `assets/mark-${theme}.svg`;
+  const themeMeta = document.querySelector('meta[name="theme-color"]');
+  if (themeMeta) themeMeta.content = {blue:'#172b4a',glacier:'#101722'}[theme];
+  // Preserve the choice across pages even when browser storage is unavailable.
+  document.querySelectorAll('a[href]').forEach(link => {
+    if (link.getAttribute('href').startsWith('#')) return;
+    const url = new URL(link.href);
+    if (url.origin !== location.origin || !url.pathname.endsWith('.html')) return;
+    url.searchParams.set('theme', theme);
+    link.href = url.href;
+  });
+  try { localStorage.setItem('soft-guide-theme', theme); } catch {}
+}
+applyTheme(document.documentElement.dataset.theme);
+document.querySelectorAll('[data-set-theme]').forEach(button => {
+  button.addEventListener('click', () => {
+    const theme = button.dataset.setTheme;
+    applyTheme(theme);
+    // Reloads should retain a new choice even if this page had a theme URL.
+    const url = new URL(location.href);
+    url.searchParams.set('theme', theme);
+    try { history.replaceState(null, '', url); } catch {}
+  });
 });
-// Keep the selected design across pages even with file:// previews or storage disabled.
-document.querySelectorAll('a[href]').forEach(link => {
-  if (link.hasAttribute('data-theme-choice')) return;
-  const href = link.getAttribute('href');
-  if (!/^[\w-]+\.html(?:[?#]|$)/.test(href)) return;
-  const url = new URL(link.href);
-  url.searchParams.set('theme', theme);
-  link.href = url.href;
-});
-document.querySelectorAll('img[data-brand-mark]').forEach(img => {
-  img.src = `assets/mark-${theme}.svg`;
-});
-const favicon = document.querySelector('link[rel="icon"]');
-if (favicon) favicon.href = `assets/mark-${theme}.svg`;
-const themeMeta = document.querySelector('meta[name="theme-color"]');
-if (themeMeta) themeMeta.content = {blue:'#172b4a',midnight:'#11151b',glacier:'#101722',amethyst:'#15131d',coral:'#1b1417',sage:'#203c32'}[theme];
 
 const menu = document.querySelector('[data-menu]');
 const navigation = document.querySelector('#navigation');

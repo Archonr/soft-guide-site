@@ -2,10 +2,14 @@ VERIFICATION — 29 October 2026
 
 Completed:
 - Built all five pages, the 404 page, text CV, robots.txt and sitemap.xml.
-- Four Node test groups passed: HTML/link/anchor/metadata integrity;
+- Five Node test groups passed: HTML/link/anchor/metadata integrity;
   clean-checkout contact isolation and honest CV; theme assets;
+  first-visit defaults and invalid/unavailable saved-theme fallbacks;
   release approval gates and exclusion of local-only data.
-- Browser checked Blue / Light and Midnight / Dark on desktop.
+- Browser checked the selected Blue / Light and Glacier / Dark themes.
+- The header Light / Dark control switches instantly. Verified that the
+  choice persists through navigation and reload, with working theme URLs.
+- The theme control and header were checked at 320px without overflow.
 - Checked every main page at an actual 390px browser viewport; no
   horizontal document overflow was observed.
 - Opened mobile navigation and dismissed it with Escape.
@@ -20,7 +24,8 @@ Completed:
 Limits and remaining owner decisions:
 - No public deployment, DNS changes, mailbox provisioning, or domain
   registrar actions were performed. Domain purchase is owner-reported.
-- Final design and public contact address await selection/confirmation.
+- Design selection is Blue / Light by default, with Glacier / Dark as the
+  visitor-selectable alternative. The public contact address awaits confirmation.
 - CV remains a draft; employment history, credentials, education and
   languages need verified information. Suggested LinkedIn text was saved,
   but LinkedIn was not edited.
