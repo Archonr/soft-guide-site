@@ -1,0 +1,27 @@
+SUGGESTED LINKEDIN EXPERIENCE — OWNER REVIEW REQUIRED
+Prepared for manual entry. Nothing has been posted or changed on LinkedIn.
+
+Title: Founder | DevOps & Cloud Infrastructure Consulting
+Company: Soft Guide s. r. o.
+Dates: April 2025 — present
+Location: Bratislava, Slovakia
+Employment type: [Choose the type that accurately reflects your arrangement]
+Company page: [Select the actual company page if one exists; do not link a similarly named company]
+
+Description:
+Founded Soft Guide s. r. o. to provide hands-on DevOps and cloud infrastructure consulting, with a focus on AWS, Kubernetes, and security-minded engineering.
+
+Service focus:
+• Infrastructure design and reviews, including AWS architecture, cost, reliability, and operational considerations.
+• Kubernetes operational reviews and hardening guidance.
+• CI/CD and infrastructure-as-code automation.
+• Security posture reviews covering IAM, networking, and configuration, with practical recommendations and prioritized remediation roadmaps.
+
+The security offering is advisory and configuration-focused; it does not include penetration testing or offensive security.
+
+Review before posting:
+- Confirm this title and description reflect work actually performed since April 2025.
+- Founder/sole shareholder is owner-confirmed. No formal director title is asserted.
+- Do not remove or change existing employment entries without checking dates and arrangements.
+- Add only verified responsibilities and outcomes; service offerings are not evidence of completed client projects.
+- Keep the website field blank until the website is authorized and deployed; softguide.dev is not yet verified live.

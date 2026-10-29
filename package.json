@@ -1,0 +1,14 @@
+{
+  "name": "soft-guide-site",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Soft Guide s. r. o. corporate website — local review, no deployment",
+  "type": "module",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "build:release": "node scripts/build.mjs --release",
+    "preview": "node scripts/serve.mjs",
+    "test": "node --test tests/site.test.mjs"
+  }
+}

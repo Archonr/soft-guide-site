@@ -1,0 +1,25 @@
+SOFT GUIDE — DESIGN OPTIONS
+
+Identity: two open brackets form a stable frame; a rising directional arrow
+represents guidance and forward movement. Flat SVG geometry remains legible
+at favicon size. No third-party marks were traced.
+
+Blue / Light (current default)
+Background #F3F5FA; ink #172B4A; accent #2455C7; pale blue #DCE7FF.
+Clean, restrained technical consultancy identity.
+
+Midnight / Dark
+Background #11151B; text #ECEEF4; muted #B0B9C7; amber #EDC28C.
+Dark surfaces and warm highlights; avoids neon-green security clichés.
+
+Sage / Original
+Background #F6F5EE; ink #203C32; lime #D4EF85.
+Retained for comparison at the owner's request for alternatives.
+
+System Arial/Helvetica for body and headings; Georgia italic for the hero's
+single emphasized word; Consolas/Courier for compact technical labels.
+No remote font requests. Page structure is shared across color options.
+
+mark.svg, wordmark.svg and social.svg preserve the original concept.
+mark-blue.svg, mark-midnight.svg and mark-sage.svg match the preview themes.
+Finalize the selected wordmark/social palette before external brand use.

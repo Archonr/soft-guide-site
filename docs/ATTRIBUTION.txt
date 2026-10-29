@@ -1,0 +1,26 @@
+ASSET AND CONTENT PROVENANCE — 29 October 2026
+
+Original work created for this project:
+- Direction-arrow mark, palette variants, SVG wordmark, and social artwork.
+- CSS architecture illustration, templates, styles, scripts, and service copy.
+- No stock photos, third-party fonts, external icon libraries, or copied reference code.
+- Font families are system stacks; no font files are distributed.
+
+Inspiration only:
+https://github.com/shmileee/oponomarov.com
+https://oponomarov.com/
+The GitHub repository metadata and live portfolio were inspected. The content model informed a clear separation of services, professional profile, and contact paths. No biography, case study, numerical outcome, code, layout implementation, or asset was reused. The resulting identity and palette variants are original. A README fetch was rejected by the connector, so no claim of reading the full repository is made.
+
+Professional source:
+https://www.linkedin.com/in/vlad-korkach/
+Public retrieval was incomplete. A regional indexed page displayed an employer name but omitted sufficiently complete role and date information; it was not used to populate employment history. LinkedIn search returned no usable match. No endorsements, activity posts, or course badges were turned into professional certifications or service claims.
+
+Owner-supplied facts:
+Soft Guide s. r. o.; IČO 56926901; registered 24 April 2025;
+Račianska 1579/88B, 831 02 Bratislava–Nové Mesto, Slovakia;
+Vladyslav Korkach, founder and sole shareholder; declared AWS, Kubernetes,
+DevOps, automation, and advisory focus. Domain purchase reported by owner.
+Company registry records were not independently verified in this task.
+
+AWS, Kubernetes, GitHub, and LinkedIn are third-party names. No affiliation,
+endorsement, partner status, or professional certification is implied.
