@@ -21,7 +21,7 @@ document.querySelectorAll('img[data-brand-mark]').forEach(img => {
 const favicon = document.querySelector('link[rel="icon"]');
 if (favicon) favicon.href = `assets/mark-${theme}.svg`;
 const themeMeta = document.querySelector('meta[name="theme-color"]');
-if (themeMeta) themeMeta.content = {blue:'#172b4a',midnight:'#11151b',glacier:'#101722',sage:'#203c32'}[theme];
+if (themeMeta) themeMeta.content = {blue:'#172b4a',midnight:'#11151b',glacier:'#101722',amethyst:'#15131d',coral:'#1b1417',sage:'#203c32'}[theme];
 
 const menu = document.querySelector('[data-menu]');
 const navigation = document.querySelector('#navigation');

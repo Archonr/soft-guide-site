@@ -28,3 +28,11 @@ Glacier / Dark
 Background #101722; text #EDF2FA; ice-blue accent #91C7F2.
 An additional dark option with cool highlights instead of amber.
 mark-glacier.svg matches this palette.
+
+Amethyst / Dark
+Background #15131d; text #f1eef9; accent #c3b1fa.
+Matching logo: mark-amethyst.svg.
+
+Coral / Dark
+Background #1b1417; text #f9eff1; accent #f2a69a.
+Matching logo: mark-coral.svg.
