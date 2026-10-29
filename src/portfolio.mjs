@@ -195,7 +195,7 @@ export const caseStudies = [
     ],
     available: 'Architecture review · part of every package'
   }
-].map(c => ({...c, figure: diagrams[c.diagram]}));
+].map(c => ({...c, figure: diagrams[c.diagram].replaceAll('id="fig-head', `id="${c.slug}-head`).replaceAll('url(#fig-head', `url(#${c.slug}-head`)}));
 
 export const platform = {
   tiers: [
