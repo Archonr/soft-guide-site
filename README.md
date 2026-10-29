@@ -28,6 +28,7 @@ The local comparison bar offers:
 | --- | --- | --- |
 | Blue / Light | Cool white, navy, cobalt | `http://127.0.0.1:4173/?theme=blue` |
 | Midnight / Dark | Charcoal, pale text, amber | `http://127.0.0.1:4173/?theme=midnight` |
+| Glacier / Dark | Deep blue-charcoal, ice-blue accents | `http://127.0.0.1:4173/?theme=glacier` |
 | Sage / Original | Warm white, forest, lime | `http://127.0.0.1:4173/?theme=sage` |
 
 Theme selection applies across all pages, including the logo, panels, forms, buttons, and footer. A URL parameter takes precedence over a saved preference. Storage failure is tolerated; links retain the design parameter. The default is `blue`, configured in `config/site.json`. The comparison bar is excluded from release builds.
@@ -60,7 +61,7 @@ Before setting `resumeApproved`, replace placeholders with verified history or c
 Before publication, review the actual generated pages and set these values deliberately in `config/site.json`:
 
 - `origin`: `https://softguide.dev`, without trailing slash.
-- `theme`: the selected design (`blue`, `midnight`, or `sage`).
+- `theme`: the selected design (`blue`, `midnight`, `glacier`, or `sage`).
 - `businessEmail`: a real, working, approved address.
 - `phone`: only if approved for publication.
 - `contactsApproved`, `contentApproved`, `resumeApproved`: `true` only after owner review.

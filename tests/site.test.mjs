@@ -48,7 +48,7 @@ test('public checkout builds without personal review contacts and has an honest 
 test('all themes have usable direct links and original matching assets',async()=>{
  const home=await output('index.html');
  assert.match(home,/data-default-theme="blue"/);
- for(const theme of ['blue','midnight','sage']){
+ for(const theme of ['blue','midnight','glacier','sage']){
   assert.ok(home.includes(`href="?theme=${theme}"`));
   assert.match(await readFile(path.join(fixture,'dist','assets',`mark-${theme}.svg`),'utf8'),/<svg/);
  }

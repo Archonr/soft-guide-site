@@ -23,3 +23,8 @@ No remote font requests. Page structure is shared across color options.
 mark.svg, wordmark.svg and social.svg preserve the original concept.
 mark-blue.svg, mark-midnight.svg and mark-sage.svg match the preview themes.
 Finalize the selected wordmark/social palette before external brand use.
+
+Glacier / Dark
+Background #101722; text #EDF2FA; ice-blue accent #91C7F2.
+An additional dark option with cool highlights instead of amber.
+mark-glacier.svg matches this palette.
