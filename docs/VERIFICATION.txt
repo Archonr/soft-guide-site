@@ -1,0 +1,39 @@
+VERIFICATION — 29 October 2026
+
+Completed:
+- Built all five pages, the 404 page, text CV, robots.txt and sitemap.xml.
+- Four Node test groups passed: HTML/link/anchor/metadata integrity;
+  clean-checkout contact isolation and honest CV; theme assets;
+  release approval gates and exclusion of local-only data.
+- Browser checked Blue / Light and Midnight / Dark on desktop.
+- Checked every main page at an actual 390px browser viewport; no
+  horizontal document overflow was observed.
+- Opened mobile navigation and dismissed it with Escape.
+- Prepared an email draft with synthetic inquiry content. The expected
+  mailto link and explicit not-sent status appeared; no email was sent.
+- JavaScript syntax checks and git diff whitespace checks passed.
+- Public GitHub repository created under Archonr; initial local/remote
+  commit matched, and GitHub metadata confirmed has_pages=false.
+- Tracked source excludes dist/, .local/, personal review contacts,
+  authentication credentials, and all parent-workspace materials.
+
+Limits and remaining owner decisions:
+- No public deployment, DNS changes, mailbox provisioning, or domain
+  registrar actions were performed. Domain purchase is owner-reported.
+- Final design and public contact address await selection/confirmation.
+- CV remains a draft; employment history, credentials, education and
+  languages need verified information. Suggested LinkedIn text was saved,
+  but LinkedIn was not edited.
+- Print styles are included; no exported PDF or cross-browser print QA
+  was performed. A full screen-reader and multi-device audit was not run.
+- No actual mail-client send, backend delivery, or social image preview
+  was tested. The site has no mail delivery backend.
+- Release readiness flags remain false. The release command refuses to
+  build a publishable version until approvals and a real email are set.
+
+GitHub CLI:
+Installed official GitHub CLI 2.103.3 for the Windows user, using the
+official Windows x64 archive and a matching SHA-256 release digest.
+Added its bin folder to the user PATH. Browser device login confirmed
+Archonr; credentials are managed by GitHub CLI/the operating system and
+were not written into this repository. Open a new terminal to pick up PATH.
