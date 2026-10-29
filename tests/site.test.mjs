@@ -10,6 +10,10 @@ import {runInNewContext} from 'node:vm';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const fixture=await mkdtemp(path.join(tmpdir(),'soft-guide-test-'));
 for(const dir of ['src','scripts','public','config']) await cp(path.join(root,dir),path.join(fixture,dir),{recursive:true});
+const fixtureConfigPath=path.join(fixture,'config/site.json');
+const fixtureConfig=JSON.parse(await readFile(fixtureConfigPath,'utf8'));
+Object.assign(fixtureConfig,{contactsApproved:false,contentApproved:false,resumeApproved:false,allowIndexing:false});
+await writeFile(fixtureConfigPath,JSON.stringify(fixtureConfig));
 after(()=>rm(fixture,{recursive:true,force:true}));
 const run=(...args)=>spawnSync(process.execPath,['scripts/build.mjs',...args],{cwd:fixture,encoding:'utf8'});
 const output=file=>readFile(path.join(fixture,'dist',file),'utf8');
@@ -39,7 +43,7 @@ test('review build has real pages, working internal paths, unique IDs and metada
 
 test('public checkout builds without personal review contacts and has an honest CV',async()=>{
  const contact=await output('contact.html');
- assert.match(contact,/Business email to be confirmed/);
+ assert.match(contact,/Connect on LinkedIn to discuss your project/);
  assert.doesNotMatch(contact,/<form|mailto:|tel:/);
  assert.match(await output('cv.html'),/Previous experience — to confirm/);
  assert.match(await output('services.html'),/does not provide penetration testing/);
@@ -70,7 +74,7 @@ test('first visits use light and obsolete or unavailable saved themes fall back 
 test('release refuses unapproved content; approved release ignores local-only data',async()=>{
  let result=run('--release'); assert.notEqual(result.status,0); assert.match(result.stderr,/Release blocked/);
  const config=JSON.parse(await readFile(path.join(fixture,'config/site.json'),'utf8'));
- Object.assign(config,{businessEmail:'contact@softguide.dev',contactsApproved:true,contentApproved:true,resumeApproved:true,allowIndexing:true,theme:'glacier'});
+ Object.assign(config,{businessEmail:'',contactsApproved:true,contentApproved:true,resumeApproved:true,allowIndexing:true,theme:'glacier'});
  await writeFile(path.join(fixture,'config/site.json'),JSON.stringify(config));
  const {mkdir}=await import('node:fs/promises');
  await mkdir(path.join(fixture,'.local'));
@@ -83,7 +87,8 @@ test('release refuses unapproved content; approved release ignores local-only da
  assert.match(home,/<link rel="canonical" href="https:\/\/softguide.dev\/">/);
  assert.match(home,/data-default-theme="glacier"/);
  assert.match(home,/content="index,follow"/);
- assert.match(contact,/contact@softguide.dev/);
+ assert.match(contact,/Connect on LinkedIn/);
+ assert.doesNotMatch(contact,/<form|mailto:|tel:/);
  assert.doesNotMatch(contact,/private@example.org|421000000000/);
  assert.doesNotMatch(await output('cv.html'),/\[Employer\]|Previous experience — to confirm/);
  assert.match(await output('sitemap.xml'),/https:\/\/softguide.dev\/services.html/);

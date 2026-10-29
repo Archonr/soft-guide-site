@@ -1,0 +1,36 @@
+GITHUB PAGES — softguide.dev
+
+Owner authorized public publication on 29 October 2026.
+Repository: https://github.com/Archonr/soft-guide-site
+Preferred origin: https://softguide.dev
+Publishing workflow: .github/workflows/pages.yml
+
+Only the release-built dist/ artifact is uploaded. Local overrides,
+parent-workspace documents, credentials and unverified CV history are
+excluded. Public contact currently uses LinkedIn; no domain mailbox or
+personal email is asserted. Blue is default; Glacier is selectable.
+
+Workflow: tests -> release build -> publication-content check -> Pages
+artifact upload -> github-pages deployment. It runs on pushes to main or
+manual dispatch. Official actions are pinned to checked commit SHAs.
+
+Custom domain must be configured on GitHub before changing DNS.
+For Namecheap BasicDNS, expected web records are:
+A      @    185.199.108.153
+A      @    185.199.109.153
+A      @    185.199.110.153
+A      @    185.199.111.153
+CNAME  www  Archonr.github.io
+
+Remove conflicting parking/URL-redirect web records only. Preserve mail,
+TXT, verification and unrelated records. Do not add wildcard records.
+HTTPS enforcement is enabled once GitHub has issued a valid certificate.
+Registrar contact verification is a separate owner action if requested.
+
+References:
+https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
+https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site
+
+At the time of this setup commit, deployment/DNS/TLS verification is in
+progress. Check the latest GitHub workflow, Pages settings, public DNS and
+HTTPS responses for current state; this file does not assert they succeeded.
