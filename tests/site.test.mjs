@@ -17,7 +17,8 @@ await writeFile(fixtureConfigPath,JSON.stringify(fixtureConfig));
 after(()=>rm(fixture,{recursive:true,force:true}));
 const run=(...args)=>spawnSync(process.execPath,['scripts/build.mjs',...args],{cwd:fixture,encoding:'utf8'});
 const output=file=>readFile(path.join(fixture,'dist',file),'utf8');
-const pages=['index.html','services.html','about.html','contact.html','cv.html','404.html'];
+const {caseStudies}=await import(path.join(root,'src/portfolio.mjs'));
+const pages=['index.html','platform.html','work.html','services.html','about.html','contact.html','cv.html','404.html',...caseStudies.map(s=>`work-${s.slug}.html`)];
 
 test('review build has real pages, working internal paths, unique IDs and metadata',async()=>{
  const built=run(); assert.equal(built.status,0,built.stderr);
@@ -93,4 +94,18 @@ test('release refuses unapproved content; approved release ignores local-only da
  assert.doesNotMatch(await output('cv.html'),/\[Employer\]|Previous experience — to confirm/);
  assert.match(await output('sitemap.xml'),/https:\/\/softguide.dev\/services.html/);
  assert.match(await output('robots.txt'),/Allow: \//);
+});
+
+test('case studies carry no account IDs or locally listed private terms',async()=>{
+ // Terms that must never appear publicly are kept outside the repository, one per line,
+ // in .local/forbidden-terms.txt (git-ignored). Without the file only the generic checks run.
+ let terms=[];
+ try { terms=(await readFile(path.join(root,'.local/forbidden-terms.txt'),'utf8')).split('\n').map(t=>t.trim()).filter(Boolean); } catch {}
+ const files=['work.html','platform.html','index.html',...caseStudies.map(s=>`work-${s.slug}.html`)];
+ for(const file of files){
+  const html=(await output(file)).toLowerCase();
+  assert.doesNotMatch(html,/\b\d{12}\b/,`${file}: looks like an account ID`);
+  for(const term of terms) assert.ok(!html.includes(term.toLowerCase()),`${file}: contains a private term`);
+ }
+ for(const s of caseStudies) assert.match(await output(`work-${s.slug}.html`),/<svg viewBox=/,`${s.slug}: diagram`);
 });

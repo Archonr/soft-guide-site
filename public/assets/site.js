@@ -63,3 +63,31 @@ form?.addEventListener('submit', (event) => {
   link.hidden = false;
   document.querySelector('[data-form-status]').textContent = 'Your email draft is ready. Open it below, review it, and send it from your email app. Nothing has been sent by this website.';
 });
+
+// Work page: filter case studies by topic. Without JavaScript every study stays visible.
+const filter = document.querySelector('[data-filter]');
+if (filter) {
+  const cards = [...document.querySelectorAll('[data-topics]')];
+  const empty = document.querySelector('[data-filter-empty]');
+  const select = (topic) => {
+    filter.querySelectorAll('[data-topic]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.topic === topic)));
+    let shown = 0;
+    cards.forEach(card => {
+      const match = !topic || card.dataset.topics.split(' ').includes(topic);
+      card.hidden = !match;
+      if (match) shown++;
+    });
+    empty.hidden = shown > 0;
+  };
+  filter.hidden = false;
+  filter.addEventListener('click', (event) => {
+    const button = event.target.closest('[data-topic]');
+    if (!button) return;
+    select(button.dataset.topic);
+    const url = new URL(location.href);
+    if (button.dataset.topic) url.searchParams.set('topic', button.dataset.topic); else url.searchParams.delete('topic');
+    try { history.replaceState(null, '', url); } catch {}
+  });
+  const initial = new URLSearchParams(location.search).get('topic');
+  if (initial && filter.querySelector(`[data-topic="${CSS.escape(initial)}"]`)) select(initial);
+}
