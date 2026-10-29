@@ -16,25 +16,34 @@ Completed:
 - Prepared an email draft with synthetic inquiry content. The expected
   mailto link and explicit not-sent status appeared; no email was sent.
 - JavaScript syntax checks and git diff whitespace checks passed.
-- Public GitHub repository created under Archonr; initial local/remote
-  commit matched, and GitHub metadata confirmed has_pages=false.
+- Public GitHub repository created under Archonr; Pages was subsequently
+  enabled with the owner's explicit publication authorization. The first
+  Publish website workflow completed successfully for commit 9e0b92b.
+- Namecheap web DNS now has the four GitHub Pages A records and the www
+  CNAME to Archonr.github.io. Authoritative DNS returned all four addresses.
+- Direct HTTP verification against the GitHub Pages address returned 200
+  for the softguide.dev hostname. HTTPS certificate issuance is pending;
+  this HTTP check alone does not establish HTTPS readiness.
 - Tracked source excludes dist/, .local/, personal review contacts,
   authentication credentials, and all parent-workspace materials.
 
 Limits and remaining owner decisions:
-- No public deployment, DNS changes, mailbox provisioning, or domain
-  registrar actions were performed. Domain purchase is owner-reported.
+- No mailbox was provisioned. The registrar account and domain were
+  inspected with the owner's authorization; owner reports completing
+  registrar contact-email verification.
 - Design selection is Blue / Light by default, with Glacier / Dark as the
   visitor-selectable alternative. The public contact address awaits confirmation.
-- CV remains a draft; employment history, credentials, education and
-  languages need verified information. Suggested LinkedIn text was saved,
-  but LinkedIn was not edited.
+- The public CV is a short founder profile; unverified earlier history,
+  credentials, education and languages are omitted. Suggested LinkedIn
+  text was saved, but LinkedIn was not edited.
 - Print styles are included; no exported PDF or cross-browser print QA
   was performed. A full screen-reader and multi-device audit was not run.
 - No actual mail-client send, backend delivery, or social image preview
   was tested. The site has no mail delivery backend.
-- Release readiness flags remain false. The release command refuses to
-  build a publishable version until approvals and a real email are set.
+- Release approvals are enabled for the reviewed company content, short
+  founder profile, and professional-profile contact links. Blank email
+  intentionally selects LinkedIn contact; no mailbox is implied.
+- Mandatory HTTPS was not enabled while the certificate was unavailable.
 
 GitHub CLI:
 Installed official GitHub CLI 2.103.3 for the Windows user, using the

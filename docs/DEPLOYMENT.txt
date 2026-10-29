@@ -31,6 +31,14 @@ References:
 https://docs.github.com/en/pages/getting-started-with-github-pages/using-custom-workflows-with-github-pages
 https://docs.github.com/en/pages/configuring-a-custom-domain-for-your-github-pages-site/managing-a-custom-domain-for-your-github-pages-site
 
-At the time of this setup commit, deployment/DNS/TLS verification is in
-progress. Check the latest GitHub workflow, Pages settings, public DNS and
-HTTPS responses for current state; this file does not assert they succeeded.
+Verified during setup:
+- Workflow 40955856255 completed successfully for commit 9e0b92b.
+- The four A records and www CNAME were saved in Namecheap; authoritative
+  DNS returned the configured values. Existing mail settings were retained.
+- A direct HTTP request to the Pages IP for softguide.dev returned 200.
+- TLS certificate issuance was still pending at this documentation update;
+  HTTPS enforcement remained off. Do not treat HTTP success as TLS success.
+
+Check the latest Pages settings, public DNS and verified HTTPS responses
+for current certificate/readiness state. Local DNS caches can temporarily
+retain the former Namecheap parking address after authoritative DNS changes.
