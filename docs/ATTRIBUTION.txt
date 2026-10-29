@@ -1,7 +1,8 @@
 ASSET AND CONTENT PROVENANCE — 29 October 2026
 
 Original work created for this project:
-- Direction-arrow mark, palette variants, SVG wordmark, and social artwork.
+- Original Layers mark, light/dark SVG wordmarks, and matching social artwork.
+- Earlier direction-arrow concept was replaced by owner-selected Layers on 29 October 2026.
 - CSS architecture illustration, templates, styles, scripts, and service copy.
 - No stock photos, third-party fonts, external icon libraries, or copied reference code.
 - Font families are system stacks; no font files are distributed.

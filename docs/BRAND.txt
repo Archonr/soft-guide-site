@@ -12,7 +12,13 @@ The header Light / Dark control changes the theme instantly and remembers
 the visitor's choice. First visits default to light. Other exploratory
 palettes have been removed from the current implementation.
 
-The original direction-arrow identity is retained. mark-blue.svg and
-mark-glacier.svg are the active theme assets; mark.svg, wordmark.svg and
-social.svg use the selected Blue identity. All are original vector assets.
+The selected Layers identity uses a rhombus above two open layers,
+representing infrastructure architecture and the relationship between
+platform layers. The original direction-arrow sign has been replaced.
+
+layers-blue.svg and layers-glacier.svg are the active marks, also used for
+the favicon. The distinct filenames avoid reusing cached arrow assets.
+mark.svg and wordmark.svg provide the light identity; wordmark-glacier.svg
+provides the dark identity. social.svg uses the Layers motif. All are
+original vector assets; no third-party icon or image was copied.
 System Arial/Helvetica, Georgia italic and Consolas/Courier; no remote fonts.

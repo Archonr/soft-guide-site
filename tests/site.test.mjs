@@ -55,7 +55,7 @@ test('all themes have usable direct links and original matching assets',async()=
  assert.match(home,/data-default-theme="blue"/);
  for(const theme of ['blue','glacier']){
   assert.ok(home.includes(`data-set-theme="${theme}"`));
-  assert.match(await readFile(path.join(fixture,'dist','assets',`mark-${theme}.svg`),'utf8'),/<svg/);
+  assert.match(await readFile(path.join(fixture,'dist','assets',`layers-${theme}.svg`),'utf8'),/<svg/);
  }
 });
 

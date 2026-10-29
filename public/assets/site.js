@@ -4,10 +4,10 @@ function applyTheme(theme) {
     button.setAttribute('aria-pressed', String(button.dataset.setTheme === theme));
   });
   document.querySelectorAll('img[data-brand-mark]').forEach(img => {
-    img.src = `assets/mark-${theme}.svg`;
+    img.src = `assets/layers-${theme}.svg`;
   });
   const favicon = document.querySelector('link[rel="icon"]');
-  if (favicon) favicon.href = `assets/mark-${theme}.svg`;
+  if (favicon) favicon.href = `assets/layers-${theme}.svg`;
   const themeMeta = document.querySelector('meta[name="theme-color"]');
   if (themeMeta) themeMeta.content = {blue:'#172b4a',glacier:'#101722'}[theme];
   // Preserve the choice across pages even when browser storage is unavailable.

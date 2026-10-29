@@ -20,6 +20,7 @@ body{background:var(--paper)}
 .note{border-color:var(--accent)}
 .field input,.field textarea,.field select{border-color:var(--muted)}
 .cta,.about-mark{background:var(--lime)}
+.about-mark{background:var(--panel)}
 .cta{color:#172332}.cta .button{background:#172b4a;border-color:#172b4a;color:#fff}.cta .button:hover{background:#0b1525}
 .skip,.badge{color:#172332}
 .header .nav{margin-left:auto}
