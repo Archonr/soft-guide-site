@@ -91,3 +91,79 @@ if (filter) {
   const initial = new URLSearchParams(location.search).get('topic');
   if (initial && filter.querySelector(`[data-topic="${CSS.escape(initial)}"]`)) select(initial);
 }
+
+// Work page: read a case study in place. A plain click opens the reader; a modified click,
+// a middle click or no JavaScript follows the link to the full page as usual.
+const reader = document.querySelector('[data-reader]');
+if (reader && typeof reader.showModal === 'function') {
+  const body = reader.querySelector('[data-reader-body]');
+  const full = reader.querySelector('[data-reader-full]');
+  const steps = reader.querySelectorAll('[data-reader-step]');
+  let current = null;
+  let returnFocus = null;
+  const visible = () => [...document.querySelectorAll('.case-grid [data-case]')].filter(card => !card.hidden).map(card => card.dataset.case);
+  const show = (slug, history_ = 'push') => {
+    const template = document.querySelector(`[data-case-template="${CSS.escape(slug)}"]`);
+    if (!template) return;
+    current = slug;
+    body.replaceChildren(template.content.cloneNode(true));
+    const page = new URL(`work-${slug}.html`, location.href);
+    page.searchParams.set('theme', document.documentElement.dataset.theme);
+    full.href = page.href;
+    const order = visible();
+    const index = order.indexOf(slug);
+    steps.forEach(button => {
+      const target = order[index + Number(button.dataset.readerStep)];
+      button.disabled = index < 0 || !target;
+    });
+    if (!reader.open) reader.showModal();
+    body.focus({preventScroll: true});
+    reader.scrollTop = 0;
+    const url = new URL(location.href);
+    url.hash = slug;
+    try {
+      if (history_ === 'push') history.pushState({reader: slug}, '', url);
+      else if (history_ === 'replace') history.replaceState({reader: slug}, '', url);
+    } catch {}
+  };
+  const close = (fromHistory = false) => {
+    if (!reader.open) return;
+    reader.close();
+    current = null;
+    returnFocus?.focus();
+    if (!fromHistory) {
+      if (history.state?.reader) history.back();
+      else try { history.replaceState(null, '', location.pathname + location.search); } catch {}
+    }
+  };
+  document.querySelector('.case-grid')?.addEventListener('click', (event) => {
+    const card = event.target.closest('[data-case]');
+    if (!card || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    event.preventDefault();
+    returnFocus = card;
+    show(card.dataset.case);
+  });
+  steps.forEach(button => button.addEventListener('click', () => {
+    const order = visible();
+    const target = order[order.indexOf(current) + Number(button.dataset.readerStep)];
+    if (target) show(target, 'replace');
+  }));
+  reader.querySelector('[data-reader-close]').addEventListener('click', () => close());
+  reader.addEventListener('cancel', (event) => { event.preventDefault(); close(); });
+  reader.addEventListener('click', (event) => { if (event.target === reader) close(); });
+  reader.addEventListener('keydown', (event) => {
+    if (event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+    if (event.key === 'ArrowLeft') reader.querySelector('[data-reader-step="-1"]').click();
+    if (event.key === 'ArrowRight') reader.querySelector('[data-reader-step="1"]').click();
+  });
+  window.addEventListener('popstate', () => {
+    const slug = location.hash.slice(1);
+    if (slug && document.querySelector(`[data-case-template="${CSS.escape(slug)}"]`)) show(slug, 'none');
+    else close(true);
+  });
+  const initial = location.hash.slice(1);
+  if (initial && document.querySelector(`[data-case-template="${CSS.escape(initial)}"]`)) {
+    returnFocus = document.querySelector(`[data-case="${CSS.escape(initial)}"]`);
+    show(initial, 'replace');
+  }
+}
