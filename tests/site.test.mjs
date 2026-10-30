@@ -18,7 +18,8 @@ after(()=>rm(fixture,{recursive:true,force:true}));
 const run=(...args)=>spawnSync(process.execPath,['scripts/build.mjs',...args],{cwd:fixture,encoding:'utf8'});
 const output=file=>readFile(path.join(fixture,'dist',file),'utf8');
 const {caseStudies}=await import(path.join(root,'src/portfolio.mjs'));
-const pages=['index.html','platform.html','work.html','services.html','about.html','contact.html','cv.html','404.html',...caseStudies.map(s=>`work-${s.slug}.html`)];
+const {notes}=await import(path.join(root,'src/notes.mjs'));
+const pages=['index.html','platform.html','work.html','services.html','about.html','contact.html','cv.html','404.html',...caseStudies.map(s=>`work-${s.slug}.html`),'notes.html',...notes.map(n=>`notes-${n.slug}.html`)];
 
 test('review build has real pages, working internal paths, unique IDs and metadata',async()=>{
  const built=run(); assert.equal(built.status,0,built.stderr);
@@ -104,7 +105,7 @@ test('case studies carry no account IDs or locally listed private terms',async()
  // in .local/forbidden-terms.txt (git-ignored). Without the file only the generic checks run.
  let terms=[];
  try { terms=(await readFile(path.join(root,'.local/forbidden-terms.txt'),'utf8')).split('\n').map(t=>t.trim()).filter(Boolean); } catch {}
- const files=['work.html','platform.html','index.html',...caseStudies.map(s=>`work-${s.slug}.html`)];
+ const files=['work.html','platform.html','index.html','notes.html',...caseStudies.map(s=>`work-${s.slug}.html`),...notes.map(n=>`notes-${n.slug}.html`)];
  for(const file of files){
   const html=(await output(file)).toLowerCase();
   assert.doesNotMatch(html,/\b\d{12}\b/,`${file}: looks like an account ID`);

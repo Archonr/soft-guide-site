@@ -101,7 +101,7 @@ if (reader && typeof reader.showModal === 'function') {
     if (!template) return;
     current = slug;
     body.replaceChildren(template.content.cloneNode(true));
-    const page = new URL(`work-${slug}.html`, location.href);
+    const page = new URL(`${reader.dataset.readerPrefix || 'work-'}${slug}.html`, location.href);
     page.searchParams.set('theme', document.documentElement.dataset.theme);
     full.href = page.href;
     const order = visible();
