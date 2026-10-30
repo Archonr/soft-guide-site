@@ -42,10 +42,12 @@ test('review build has real pages, working internal paths, unique IDs and metada
  }
 });
 
-test('public checkout builds without personal review contacts and has an honest CV',async()=>{
+test('public checkout puts the approved email first, LinkedIn second, and has an honest CV',async()=>{
  const contact=await output('contact.html');
- assert.match(contact,/Connect on LinkedIn to discuss your project/);
- assert.doesNotMatch(contact,/<form|mailto:|tel:/);
+ const email=contact.indexOf('mailto:korkach.vd@gmail.com'), linkedin=contact.indexOf('LinkedIn ↗');
+ assert.ok(email>0,'email link'); assert.ok(linkedin>email,'LinkedIn after email');
+ assert.match(contact,/<form class="inquiry"/);
+ assert.doesNotMatch(contact,/tel:/);
  assert.match(await output('cv.html'),/Previous experience — to confirm/);
  assert.match(await output('services.html'),/does not provide penetration testing/);
  assert.match(await output('robots.txt'),/Disallow: \//);

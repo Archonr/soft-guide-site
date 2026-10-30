@@ -7,8 +7,8 @@ Publishing workflow: .github/workflows/pages.yml
 
 Only the release-built dist/ artifact is uploaded. Local overrides,
 parent-workspace documents, credentials and unverified CV history are
-excluded. Public contact currently uses LinkedIn; no domain mailbox or
-personal email is asserted. Blue is default; Glacier is selectable.
+excluded. Public contact leads with the owner-approved email (30 October
+2026), LinkedIn second; no domain mailbox or phone is asserted. Blue is default; Glacier is selectable.
 
 Workflow: tests -> release build -> publication-content check -> Pages
 artifact upload -> github-pages deployment. It runs on pushes to main or
