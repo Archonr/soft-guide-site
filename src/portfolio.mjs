@@ -3,7 +3,7 @@
 
 export const topics = {
   aws: 'AWS', terraform: 'Terraform', terramate: 'Terramate', kubernetes: 'Kubernetes', cilium: 'Cilium',
-  envoy: 'Envoy', flux: 'Flux', gitops: 'GitOps', cicd: 'CI/CD', kyverno: 'Kyverno',
+  envoy: 'Envoy', flux: 'Flux', gitops: 'GitOps', cicd: 'CI/CD', atlantis: 'Atlantis', kyverno: 'Kyverno',
   security: 'Security', observability: 'Observability', agents: 'AI agents'
 };
 
@@ -57,11 +57,11 @@ const diagrams = {
     box(640, 160, 210, 60, 'Enforce in prod', 'violations rejected', 'accent') +
     arrow(240, 50, 328, 120) + arrow(240, 140, 328, 140) + arrow(240, 220, 328, 160) + arrow(550, 125, 638, 75) + arrow(550, 155, 638, 185, '', 'accent')),
 
-  delivery: svg(860, 250, 'Delivery: a pull request gets checks and a plan for changed stacks only; merge applies behind a protected environment; a nightly plan opens an issue on drift.',
+  delivery: svg(860, 250, 'Delivery: a pull request gets checks; Atlantis plans the changed stacks and checks each plan against policy; after approval Atlantis applies the plan that was reviewed; a nightly plan opens an issue on drift.',
     box(10, 20, 190, 60, 'Pull request', 'fmt · lint · scans · tests') +
-    box(230, 20, 190, 60, 'Plan', 'changed stacks only') +
-    box(450, 20, 190, 60, 'Review', 'plan in the PR', 'accent') +
-    box(670, 20, 180, 60, 'Apply', 'protected env, OIDC') +
+    box(230, 20, 190, 60, 'Atlantis plan', 'changed stacks only') +
+    box(450, 20, 190, 60, 'Policy check', 'conftest on the plan', 'accent') +
+    box(670, 20, 180, 60, 'Approve, apply', 'the reviewed plan') +
     box(450, 160, 400, 60, 'Nightly drift check', 'plan every stack · issue per drifted stack') +
     arrow(200, 50, 228, 50) + arrow(420, 50, 448, 50) + arrow(640, 50, 668, 50, '', 'accent') + arrow(760, 158, 760, 82)),
 
@@ -155,15 +155,16 @@ export const caseStudies = [
   },
   {
     slug: 'delivery', number: '06', title: 'Nobody applies from a laptop',
-    summary: 'Infrastructure delivery through GitHub Actions with OIDC: plans for changed stacks on every pull request, applies behind a protected environment, nightly drift detection, a supply chain signed end to end.',
-    topics: ['cicd', 'terraform', 'terramate', 'aws', 'security'],
-    role: 'Designed the CI roles and workflows and the reusable pipeline library with its versioning. The baseline adds image signing and admission-time verification.',
+    summary: 'Infrastructure delivery through Atlantis: a plan for every changed stack on the pull request, checked against security policy, applied only after approval, nightly drift detection, and a supply chain signed end to end.',
+    topics: ['cicd', 'atlantis', 'terraform', 'terramate', 'aws', 'security'],
+    role: 'Designed the CI roles and the reusable pipeline library with its versioning. The baseline adds Atlantis with policy checks, image signing and admission-time verification.',
     diagram: 'delivery',
     sections: [
       ['The problem', 'Applies from laptops mean unreviewed changes, credentials on laptops and no record of what was applied when. Console fixes become the new normal until the next apply silently reverts them.'],
-      ['The approach', 'CI reaches AWS through OIDC with three roles per repository, each trusted only from where it is used: plan from pull requests, apply from a protected environment, publish from release tags. Only changed stacks are planned, and the plan is posted to the pull request. A nightly plan of every stack opens one issue per drifted stack.'],
+      ['The approach', 'Atlantis plans every changed stack and posts the plan to the pull request, in the order the stacks depend on each other. Each plan is checked with conftest before it may be applied: protected resources cannot be destroyed, and open ingress, wildcard IAM, unencrypted storage and public buckets fail the check. Apply needs an approving review, a mergeable and up-to-date branch, and applies exactly the plan that was reviewed. The policies are baked into the Atlantis image, so a pull request cannot weaken the policy that checks it.'],
+      ['Identity', 'No keys anywhere. Atlantis runs with its own workload identity, which may only assume a plan role and an apply role in each account; CI publishes images through OIDC roles trusted only from release tags. A nightly plan of every stack opens one issue per drifted stack.'],
       ['Supply chain', 'Third-party actions are pinned to commit SHAs; tool versions come from one file for laptops and CI alike. Images are built, scanned, given an SBOM and signed with keyless cosign; the cluster admits only images signed by the organization\'s release workflow. Build steps run with an allowlisted environment, so a dependency\'s install script never sees cloud credentials or the job token.'],
-      ['What changed', 'Every change has a pull request, a plan and an approval. Drift is found the next morning instead of during the next incident.']
+      ['What changed', 'The plan a reviewer approves is the plan that runs, and security rules are enforced on the plan itself rather than remembered by reviewers. Drift is found the next morning instead of during the next incident.']
     ],
     available: 'Launch package · CI/CD module, also sold on its own'
   },
@@ -200,14 +201,14 @@ export const caseStudies = [
 export const platform = {
   tiers: [
     {id: 'launch', name: 'Launch', lead: 'You have a product. You need somewhere production-grade to run it.',
-      items: ['AWS organization and landing zone', 'A cell: VPC, EKS on Graviton, Cilium, Karpenter', 'GitOps with Flux; Terraform and Terramate for AWS', 'CI/CD over OIDC: plans on pull requests, protected applies, drift detection', 'Prometheus, Grafana, Loki and Tempo with alerts as code', 'Architecture guide, runbooks and a handover week']},
+      items: ['AWS organization and landing zone', 'A cell: VPC, EKS on Graviton, Cilium, Karpenter', 'GitOps with Flux; Terraform and Terramate for AWS', 'Atlantis: plans on pull requests, policy checks, approved applies, drift detection', 'Prometheus, Grafana, Loki and Tempo with alerts as code', 'Architecture guide, runbooks and a handover week']},
     {id: 'secure', name: 'Secure', lead: 'Everything in Launch, plus the controls auditors and attackers both test first.',
       items: ['Organization guardrails: SCPs and RCPs with offline tests', 'Admission policy, tested both ways, enforced in production', 'Default-deny network policy with declared capabilities', 'One controlled path to the internet', 'Secrets with rotation; backups with tested restores', 'Evidence pack mapped to CIS and AWS Foundational Security Best Practices']},
     {id: 'autonomous', name: 'Autonomous', lead: 'Everything in Secure, plus agents that watch the platform and propose the fixes.',
       items: ['SRE agent: investigates every alert, reports cause and evidence', 'DevSecOps agent: turns findings into patch pull requests', 'Ask the platform from Slack; approve actions with a button', 'Own identities, least privilege, approval by blast radius', 'Spend limits, redaction and a full audit trail', 'You keep the agents and their skills as your own code']}
   ],
   modules: [
-    ['CI/CD foundation', 'Reusable pipelines, OIDC to AWS, signed images, drift detection.'],
+    ['CI/CD foundation', 'Atlantis with policy checks, reusable pipelines, OIDC to AWS, signed images, drift detection.'],
     ['AWS guardrails', 'SCPs and RCPs, permission boundaries, a dry run against your CloudTrail history.'],
     ['Kubernetes hardening', 'Admission policy, default-deny network policy, workload identity.'],
     ['Controlled egress', 'One allowlisted path out for clusters and CI runners.'],
