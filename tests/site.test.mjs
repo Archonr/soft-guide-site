@@ -17,9 +17,8 @@ await writeFile(fixtureConfigPath,JSON.stringify(fixtureConfig));
 after(()=>rm(fixture,{recursive:true,force:true}));
 const run=(...args)=>spawnSync(process.execPath,['scripts/build.mjs',...args],{cwd:fixture,encoding:'utf8'});
 const output=file=>readFile(path.join(fixture,'dist',file),'utf8');
-const {caseStudies}=await import(path.join(root,'src/portfolio.mjs'));
-const {notes}=await import(path.join(root,'src/notes.mjs'));
-const pages=['index.html','platform.html','work.html','services.html','about.html','contact.html','cv.html','404.html',...caseStudies.map(s=>`work-${s.slug}.html`),'notes.html',...notes.map(n=>`notes-${n.slug}.html`)];
+const {articles}=await import(path.join(root,'src/articles.mjs'));
+const pages=['index.html','platform.html','notes.html','services.html','about.html','contact.html','cv.html','404.html',...articles.map(a=>`notes-${a.slug}.html`)];
 
 test('review build has real pages, working internal paths, unique IDs and metadata',async()=>{
  const built=run(); assert.equal(built.status,0,built.stderr);
@@ -105,11 +104,19 @@ test('case studies carry no account IDs or locally listed private terms',async()
  // in .local/forbidden-terms.txt (git-ignored). Without the file only the generic checks run.
  let terms=[];
  try { terms=(await readFile(path.join(root,'.local/forbidden-terms.txt'),'utf8')).split('\n').map(t=>t.trim()).filter(Boolean); } catch {}
- const files=['work.html','platform.html','index.html','notes.html',...caseStudies.map(s=>`work-${s.slug}.html`),...notes.map(n=>`notes-${n.slug}.html`)];
+ const files=['platform.html','index.html','notes.html',...articles.map(a=>`notes-${a.slug}.html`)];
  for(const file of files){
   const html=(await output(file)).toLowerCase();
   assert.doesNotMatch(html,/\b\d{12}\b/,`${file}: looks like an account ID`);
   for(const term of terms) assert.ok(!html.includes(term.toLowerCase()),`${file}: contains a private term`);
  }
- for(const s of caseStudies) assert.match(await output(`work-${s.slug}.html`),/<svg viewBox=/,`${s.slug}: diagram`);
+ for(const a of articles.filter(a=>a.figure)) assert.match(await output(`notes-${a.slug}.html`),/<svg viewBox=/,`${a.slug}: diagram`);
+});
+
+test('old addresses forward to the note that holds their content',async()=>{
+ assert.match(await output('work.html'),/url=notes\.html/);
+ for(const a of articles) for(const old of a.aliases){
+  assert.match(await output(old),new RegExp(`url=notes-${a.slug}\\.html`),old);
+  await stat(path.join(fixture,'dist',`notes-${a.slug}.html`));
+ }
 });

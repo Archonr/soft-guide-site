@@ -6,6 +6,7 @@ for(const file of await readdir(root)){
  if(!/\.(html|txt)$/.test(file))continue;
  const content=await readFile(path.join(root,file),'utf8');
  if(/\[Employer\]|\[Role\]|\[Dates\]|Previous experience — to confirm|Business email to be confirmed|OWNER-REVIEWED|DRAFT —|LOCAL REVIEW|owner-confirmed|confirmed by owner|Formal director title not asserted/i.test(content))throw new Error(`Unfinished or local-only content in ${file}`);
- if(file.endsWith('.html')&&!content.includes('content="index,follow"'))throw new Error(`Indexing disabled in ${file}`);
+ // Forwarding pages for old addresses are deliberately noindex.
+ if(file.endsWith('.html')&&!content.includes('http-equiv="refresh"')&&!content.includes('content="index,follow"'))throw new Error(`Indexing disabled in ${file}`);
 }
 console.log('Public output contains no unfinished history, local contacts, or review notes.');
