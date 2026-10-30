@@ -49,7 +49,7 @@ document.addEventListener('keydown', (event) => {
 document.querySelector('[data-print]')?.addEventListener('click', () => window.print());
 const form = document.querySelector('[data-inquiry]');
 if (form) {
-  const ids = ['aws', 'kubernetes', 'security', 'automation'];
+  const ids = ['aws', 'kubernetes', 'security', 'automation', 'launch', 'secure', 'autonomous'];
   const selected = ids.indexOf(new URLSearchParams(location.search).get('service'));
   if (selected >= 0) form.elements.service.selectedIndex = selected;
 }
