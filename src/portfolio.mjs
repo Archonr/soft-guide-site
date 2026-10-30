@@ -169,15 +169,15 @@ export const caseStudies = [
     available: 'Launch package · CI/CD module, also sold on its own'
   },
   {
-    slug: 'sre-agent', number: '07', title: 'An on-call engineer that never acts alone',
-    summary: 'An AI SRE agent inside the cluster: it investigates every alert with read-only tools, reports cause and evidence in chat, and changes nothing without a human approval checked in code.',
+    slug: 'sre-agent', number: '07', title: 'An on-call engineer that acts within your rules',
+    summary: 'An AI SRE agent inside the cluster: it investigates every alert, reports cause and evidence in chat, and fixes what it found through typed actions that a policy in Git allows and a person approves.',
     topics: ['agents', 'observability', 'kubernetes', 'security'],
     role: 'Designed the agent\'s safety model and permissions, built its tools, skills and approval flow, and its evaluation suite.',
     diagram: 'agent',
     sections: [
       ['The problem', 'Small teams cannot staff round-the-clock on-call, and most alerts need the same first hour of work: which service, since when, what changed, what the logs say. The risk with an AI doing that work is not that it is slow; it is that it acts with too much power on too little evidence.'],
       ['The approach', 'The agent runs in the cluster with its own identity. It reads metrics, logs, traces, Kubernetes objects, GitOps state and the code, but not secrets. It answers in a fixed shape: verdict, observed facts with the query that produced each one, hypotheses and how each was tested, blast radius, and one next action. A measurement that is the same in the incident window and a healthy window is a precondition, not a cause.'],
-      ['Approval by blast radius', 'Reading needs no approval. A runbook action, such as restarting a deployment or resuming a reconciliation, runs under a separate operator identity after one approval in chat; the approver is checked in code against the chat identity, not in the prompt, and no answer within thirty minutes counts as a rejection. Anything else is a pull request that goes through CI and review. Secret values are redacted from every message and refused in commits, and every run has a spend limit.'],
+      ['Approval by blast radius', 'Reading needs no approval. A runbook action, such as restarting a deployment or resuming a reconciliation, goes through an action broker with its own narrow identity and runs after one approval in chat, or on its own within an hourly limit once the team has allowed that action in Git; the approver is checked in code against the chat identity, not in the prompt, and no answer within thirty minutes counts as a rejection. Anything else is a pull request that goes through CI and review. Secret values are redacted from every message and refused in commits, and every run has a spend limit.'],
       ['What changed', 'Alerts arrive already investigated. People decide; the agent does the legwork and leaves an audit trail of every tool call and every decision.']
     ],
     available: 'Autonomous package · also sold for an existing cluster'
@@ -205,7 +205,7 @@ export const platform = {
     {id: 'secure', name: 'Secure', lead: 'Everything in Launch, plus the controls auditors and attackers both test first.',
       items: ['Organization guardrails: SCPs and RCPs with offline tests', 'Admission policy, tested both ways, enforced in production', 'Default-deny network policy with declared capabilities', 'One controlled path to the internet', 'Secrets with rotation; backups with tested restores', 'Evidence pack mapped to CIS and AWS Foundational Security Best Practices']},
     {id: 'autonomous', name: 'Autonomous', lead: 'Everything in Secure, plus agents that watch the platform and propose the fixes.',
-      items: ['SRE agent: investigates every alert, reports cause and evidence', 'DevSecOps agent: turns findings into patch pull requests', 'Ask the platform from Slack; approve actions with a button', 'Own identities, least privilege, approval by blast radius', 'Spend limits, redaction and a full audit trail', 'You keep the agents and their skills as your own code']}
+      items: ['SRE agent: investigates every alert, reports cause and evidence', 'DevSecOps agent: turns findings into patch pull requests', 'Agents act: restarts, scaling and reconciles approved with a button, or allowed to run on their own', 'Own identities, least privilege, approval by blast radius', 'Spend limits, redaction and a full audit trail', 'You keep the agents and their skills as your own code']}
   ],
   modules: [
     ['CI/CD foundation', 'Atlantis with policy checks, reusable pipelines, OIDC to AWS, signed images, drift detection.'],

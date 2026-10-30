@@ -339,14 +339,14 @@ no-proxy = [".svc", ".cluster.local", "169.254.169.254", ".amazonaws.com"]`),
   },
   {
     slug: 'an-sre-agent-inside-the-cluster',
-    title: 'An SRE agent inside the cluster that never acts alone',
-    summary: 'oncall-kit for behaviour, Claude Tag for the conversation, self-hosted runners in the cell for the data: how the Autonomous package builds its agents.',
+    title: 'An SRE agent inside the cluster that acts within your rules',
+    summary: 'oncall-kit for behaviour, Claude Tag for the conversation, self-hosted runners in the cell for the data, and an action broker for everything it changes: how the Autonomous package builds its agents.',
     topics: ['agents', 'observability', 'kubernetes', 'security'],
     body: [
       h('What the agent is for'),
       p(`Most alerts need the same first hour of work: which service, since when, what changed, what the logs say. An agent can do that hour. The risk is not that it is slow; it is that it acts with too much power on too little evidence.`),
       h('Built on proven pieces'),
-      ul(`<strong>Behaviour: <a href="https://github.com/anthropics/oncall-kit">oncall-kit</a>.</strong> Its setup mines the team's incident history into triage playbooks, keeps the agent read-only, ends every phase at a human gate, and requires a blind replay eval and a shadow period before anyone relies on it.`,
+      ul(`<strong>Behaviour: <a href="https://github.com/anthropics/oncall-kit">oncall-kit</a>.</strong> Its setup mines the team's incident history into triage playbooks, ends every phase at a human gate, and requires a blind replay eval and a shadow period before anyone relies on it.`,
         `<strong>Conversation: Claude Tag</strong> in the team's Slack on-call and incident channels.`,
         `<strong>Execution: self-hosted runners inside the cell.</strong> Hosted sandboxes cannot reach private endpoints, so sessions run next to the data. An orchestrator holds the environment key and starts one Kubernetes Job per session with a single-use work order; the key never reaches a pod that runs a session.`),
       code('sh', `
@@ -354,11 +354,20 @@ no-proxy = [".svc", ".cluster.local", "169.254.169.254", ".amazonaws.com"]`),
 name="runner-$(printf '%s' "$CLAUDE_RUNNER_ORDER_ID" | tr 'A-Z_' 'a-z-' | cut -c1-50)"
 kubectl -n agents get job "$name" >/dev/null 2>&1 && exit 0
 # ... create the Job, store the work order in a Secret owned by it, exit without waiting`),
+      h('Acting, not only advising'),
+      p(`oncall-kit keeps its agent read-only. That is the right start, but an agent that can only describe the restart still wakes someone up to type it. So the agent can act, through one door: an <strong>action broker</strong> in the cell. The agent's own identity stays read-only; to change something it asks the broker, with a reason.`),
+      code('sh', `
+act restart deployment/checkout -n shop \\
+  --reason "OOMKilled 6 times since 02:10 after the 1.42 rollout; memory flat on 1.41"
+# pending a1b2c3: waiting for approval in #platform-approvals`),
+      p(`The broker knows five typed actions: restart a workload, scale it up to a ceiling, delete one pod, reconcile or resume a Flux object. There is no action that runs a command or applies a manifest. A policy in Git says which namespaces are open, who may approve, and which actions may run without asking, up to a number per hour. Everything starts behind approval: the broker posts the request to Slack with Approve and Reject buttons and runs it only when someone on the approver list presses one. When a team has approved the same restart for the tenth time, they move that action to run on its own with a pull request, not a prompt.`),
+      p(`Lasting fixes, such as a memory limit, a configuration value or a version, stay pull requests. The DevSecOps agent writes only pull requests; branch protection keeps merging with people.`),
       h('Guarantees that do not depend on the model'),
-      ul(`Read-only RBAC with no Secrets, no exec, no write verbs.`,
-        `Managed settings in the image deny write commands; the image carries read-only tools only.`,
-        `Network: the model API, GitHub and the in-cluster observability endpoints, nothing else.`,
-        `Fixes are proposals: a message in the thread or a pull request. People decide and deploy.`),
+      ul(`The agent's own RBAC is read-only, with no Secrets, no exec, no write verbs; managed settings in the image deny direct write commands.`,
+        `The broker can run its five actions and nothing else. Its role is bound only in the namespaces the policy opens, and platform namespaces (Flux, Kyverno, the gateway, the agents themselves) are refused in its code as well.`,
+        `Approvers are checked by the broker against the chat identity; a request nobody answers expires as rejected; <code>enabled: false</code> stops every action.`,
+        `Network: the model API, GitHub, the in-cluster observability endpoints and the broker, nothing else.`,
+        `Every request, decision and result is logged with the agent's reason and the approver.`),
       p(`Text the agent reads from logs, alerts and tickets is data, never instructions; that rule is in its prompt, and the credentials make sure it does not matter if the prompt is ignored.`),
     ],
   },
