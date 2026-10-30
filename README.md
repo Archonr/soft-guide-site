@@ -42,7 +42,7 @@ Without JavaScript, the configured light theme remains usable and the inactive s
 
 ## Contacts and inquiry behavior
 
-The Contact page leads with the owner-approved email (approved 30 October 2026) and an inquiry form that prepares an email draft locally; LinkedIn is the second option. Phone stays blank. With no email configured, the page falls back to LinkedIn and an inquiry checklist. A local-only `.local/preview.json` may contain `businessEmail` and `phone` for review. Copy approved contact details into public configuration only after confirming they may appear in a public repository and website. Do not assume a domain mailbox exists merely because the domain was purchased.
+The Contact page leads with the owner-approved email (approved 30 October 2026) and a Write an email button that opens the visitor's own mail app with the address and subject filled in; LinkedIn is the second option. Phone stays blank. With no email configured, the page falls back to LinkedIn and an inquiry checklist. A local-only `.local/preview.json` may contain `businessEmail` and `phone` for review. Copy approved contact details into public configuration only after confirming they may appear in a public repository and website. Do not assume a domain mailbox exists merely because the domain was purchased.
 
 When an email is configured, the form prepares a `mailto:` draft in the visitor's email application. It does not send email, contact an API, or store messages. Native browser validation checks required fields and email format. The visitor must open, review, and send the draft. If no mail application is configured, use the visible email link. JavaScript-disabled visitors can use direct contact links; navigation remains visible without JavaScript.
 

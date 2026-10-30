@@ -47,22 +47,16 @@ document.addEventListener('keydown', (event) => {
   }
 });
 document.querySelector('[data-print]')?.addEventListener('click', () => window.print());
-const form = document.querySelector('[data-inquiry]');
-if (form) {
-  const ids = ['aws', 'kubernetes', 'security', 'automation', 'launch', 'secure', 'autonomous'];
-  const selected = ids.indexOf(new URLSearchParams(location.search).get('service'));
-  if (selected >= 0) form.elements.service.selectedIndex = selected;
+// Contact: a Discuss link from Services or Platform names the topic in the email subject.
+const mail = document.querySelector('[data-mail-subject]');
+if (mail) {
+  const topics = {aws: 'AWS architecture', kubernetes: 'Kubernetes', security: 'Security posture', automation: 'Delivery & IaC', launch: 'Platform: Launch', secure: 'Platform: Secure', autonomous: 'Platform: Autonomous'};
+  const topic = topics[new URLSearchParams(location.search).get('service')];
+  if (topic) {
+    const url = new URL(mail.href);
+    mail.href = `mailto:${url.pathname}?subject=${encodeURIComponent(`Soft Guide inquiry: ${topic}`)}`;
+  }
 }
-form?.addEventListener('submit', (event) => {
-  event.preventDefault();
-  const values = new FormData(form);
-  const subject = `Soft Guide inquiry: ${values.get('service')}`;
-  const body = `Name: ${values.get('name')}\nReply email: ${values.get('email')}\n\n${values.get('message')}`;
-  const link = document.querySelector('[data-email-draft]');
-  link.href = `mailto:${form.dataset.recipient}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-  link.hidden = false;
-  document.querySelector('[data-form-status]').textContent = 'Your email draft is ready. Open it below, review it, and send it from your email app. Nothing has been sent by this website.';
-});
 
 // Work page: filter case studies by topic. Without JavaScript every study stays visible.
 const filter = document.querySelector('[data-filter]');

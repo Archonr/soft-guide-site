@@ -46,7 +46,8 @@ test('public checkout puts the approved email first, LinkedIn second, and has an
  const contact=await output('contact.html');
  const email=contact.indexOf('mailto:korkach.vd@gmail.com'), linkedin=contact.indexOf('LinkedIn ↗');
  assert.ok(email>0,'email link'); assert.ok(linkedin>email,'LinkedIn after email');
- assert.match(contact,/<form class="inquiry"/);
+ assert.doesNotMatch(contact,/<form/);
+ assert.match(contact,/href="mailto:korkach\.vd@gmail\.com\?subject=/);
  assert.doesNotMatch(contact,/tel:/);
  assert.match(await output('cv.html'),/Previous experience — to confirm/);
  assert.match(await output('services.html'),/does not provide penetration testing/);
