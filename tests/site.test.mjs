@@ -113,6 +113,16 @@ test('case studies carry no account IDs or locally listed private terms',async()
  for(const a of articles.filter(a=>a.figure)) assert.match(await output(`notes-${a.slug}.html`),/<svg viewBox=/,`${a.slug}: diagram`);
 });
 
+test('notes say what and why, not how (docs/PUBLISHING-RULES.txt)',async()=>{
+ for(const a of articles){
+  const text=[a.title,a.summary,a.body,a.figure||'',a.experience||''].join(' ');
+  assert.doesNotMatch(text,/<pre\b/,`${a.slug}: code block`);
+  assert.doesNotMatch(text,/\b\d{1,3}(?:\.\d{1,3}){3}\b/,`${a.slug}: IP address`);
+  assert.doesNotMatch(text,/\barn:aws/i,`${a.slug}: ARN`);
+  assert.doesNotMatch(text,/\$\{/,`${a.slug}: template variable`);
+ }
+});
+
 test('old addresses forward to the note that holds their content',async()=>{
  assert.match(await output('work.html'),/url=notes\.html/);
  for(const a of articles) for(const old of a.aliases){

@@ -28,6 +28,8 @@ const plan = [
   ['three-products-one-repository', null, 'three-products-one-repository'],
   ['upgrades-through-a-baseline-branch', null, 'upgrades-through-a-baseline-branch'],
   ['sre-agent', 'sre-agent', 'an-sre-agent-inside-the-cluster'],
+  ['autonomy-levels', null, 'autonomy-levels'],
+  ['agents-only-production', null, 'agents-only-production'],
 ];
 
 // Where each note-only article lives in the packages.
@@ -36,8 +38,10 @@ const packageOf = {
   'cilium-from-the-first-node': 'Launch package · every cell',
   'one-role-for-every-service': 'Launch package · every cell',
   'nodes-without-internet': 'Secure package',
-  'three-products-one-repository': 'How every package is built and delivered',
+  'three-products-one-repository': 'How every package is delivered',
   'upgrades-through-a-baseline-branch': 'Every package · delivered under a support plan',
+  'autonomy-levels': 'Autonomous package · autonomy assessment',
+  'agents-only-production': 'Autonomous package · for enterprises',
 };
 
 export const articles = plan.map(([slug, cs, ns], i) => {
