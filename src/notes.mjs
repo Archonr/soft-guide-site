@@ -1,376 +1,282 @@
-// Notes: how the platform works, one topic per note. Patterns and reasons, no client or
-// employer details. Bodies are HTML built from small helpers so code is always escaped.
+// Notes: what each part of the platform does and why, one topic per note. Patterns, reasons and
+// outcomes only: no code, configuration, method numbers or client details (docs/PUBLISHING-RULES.txt).
 
-const esc = (s) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const h = (t) => `<h2>${t}</h2>`;
 const p = (...t) => t.map((x) => `<p>${x}</p>`).join('');
-const code = (lang, src) => `<pre class="code" data-lang="${lang}"><code>${esc(src.replace(/^\n/, '').replace(/\n\s*$/, ''))}</code></pre>`;
 const ul = (...items) => `<ul>${items.map((i) => `<li>${i}</li>`).join('')}</ul>`;
-const c = (t) => `<code>${esc(t)}</code>`;
 
 export const notes = [
   {
     slug: 'gitops-bridge-flux',
-    title: 'Terraform to Flux through one ConfigMap',
-    summary: 'The GitOps Bridge pattern for Flux: Terraform publishes the AWS facts once, every manifest substitutes them, and no manifest names an account, a region or an ARN.',
+    title: 'One GitOps tree for every cell',
+    summary: 'Infrastructure code and GitOps share the facts a cluster needs without anyone copying them, so a new region adds a cell, not a copy of the manifests.',
     topics: ['terraform', 'flux', 'gitops', 'aws'],
     body: [
       h('The gap between the two tools'),
-      p(`Add-ons on EKS need facts only the infrastructure code knows: the Karpenter interruption queue, the role ARN for the load balancer controller, the VPC ID, the KMS key for node volumes. Terraform creates those things; Flux installs the charts that need them. Copying the values into Git by hand drifts on the next apply. Letting Terraform install the charts with the Helm provider makes Terraform own state that Flux then changes under it.`,
-        `The <a href="https://github.com/gitops-bridge-dev/gitops-bridge">GitOps Bridge</a> project names the pattern that closes this gap: the infrastructure tool creates the cloud resources and stores their metadata where the GitOps engine can read it; the GitOps engine installs everything and passes the metadata to the charts. Its reference implementation is for Argo CD: Terraform writes the cluster secret, add-on switches become labels, values become annotations, and ApplicationSets select clusters by label and template values from the annotations. The Flux side of the project is still in progress, so this is how the platform does it for Flux.`),
-      h('One ConfigMap, written once'),
-      p(`Terraform writes a single ConfigMap, ${c('cell-metadata')}, into ${c('flux-system')}. It holds identifiers only, never a secret value:`),
-      code('hcl', `
-resource "kubernetes_config_map_v1" "cell_metadata" {
-  metadata {
-    name      = "cell-metadata"
-    namespace = "flux-system"
-  }
-  data = {
-    cell_name                    = var.name
-    aws_region                   = local.region
-    cluster_name                 = module.eks.cluster_name
-    karpenter_interruption_queue = module.karpenter.queue_name
-    karpenter_node_role          = module.karpenter.node_iam_role_name
-    app_role_arn                 = aws_iam_role.app_abac.arn
-    admission_action             = var.environment == "dev" ? "Audit" : "Deny"
-  }
-}`),
-      p(`Every Flux Kustomization substitutes from it after building, so a manifest simply writes ${c('${cluster_name}')}:`),
-      code('yaml', `
-apiVersion: kustomize.toolkit.fluxcd.io/v1
-kind: Kustomization
-metadata:
-  name: controllers
-  namespace: flux-system
-spec:
-  path: ./infrastructure/controllers
-  postBuild:
-    substituteFrom:
-      - { kind: ConfigMap, name: cell-metadata }`),
-      h('What differs from the Argo CD bridge'),
-      ul(`<strong>Which add-ons a cell runs is decided in Git, not by labels Terraform writes.</strong> Each cell's directory lists its layers and optional components. A reviewer sees the full composition in one pull request; Terraform never decides what is installed.`,
-        `<strong>Strict substitution.</strong> Flux fails a reconciliation when a manifest asks for a variable the ConfigMap does not have, so a missing value is a loud error, not an empty string in a chart.`,
-        `<strong>Terraform installs only what must exist before Flux:</strong> the CNI, the egress gateway when the cell has one, and Flux itself. Everything else is Flux's.`,
-        `<strong>Identity before workload.</strong> Terraform creates a workload's role and Pod Identity association before Flux deploys the workload, so a pod never starts without its permissions and Flux never needs IAM rights.`),
-      h('Rules that keep it honest'),
-      ul(`Identifiers only. A database endpoint is fine; its password is not. Secrets reach the cluster through External Secrets or Pod Identity.`,
-        `The ConfigMap carries a schema number. Adding or renaming a key is a change on both sides, reviewed together.`,
-        `CI renders every layer with a sample ConfigMap in strict mode, so a typo in ${c('${variable}')} fails the pull request, not the cluster.`),
-      p(`The result is one GitOps tree for every cell. A new region is a new Terraform stack and a new directory that lists what the cell runs; no manifest is copied.`),
+      p(`Cluster add-ons need facts only the infrastructure code knows: queue names, role identifiers, network IDs, keys. The infrastructure tool creates those things; the GitOps engine installs what uses them. Copy the values by hand and they drift on the next change. Let the infrastructure tool install the add-ons and two tools fight over the same state.`),
+      p(`The <a href="https://github.com/gitops-bridge-dev/gitops-bridge">GitOps Bridge</a> community names the pattern that closes this gap. The platform applies it to Flux.`),
+      h('What it gives you'),
+      ul(`<strong>Manifests that name nothing environment-specific.</strong> No account, region or resource identifier is written into the GitOps tree, so the same reviewed manifests run in every cell.`,
+        `<strong>What a cell runs is decided in Git.</strong> A reviewer sees the whole composition of a cell in one pull request; the infrastructure tool never decides what is installed.`,
+        `<strong>Loud failures.</strong> A missing fact stops a deployment with an error instead of rendering an empty value into production.`,
+        `<strong>Identity before workload.</strong> A service's permissions exist before the service does, so nothing starts half-configured and the GitOps engine needs no cloud permissions of its own.`),
+      p(`Only identifiers cross the bridge, never secrets. A new region becomes a new stack and a short list of what it runs.`),
     ],
   },
   {
     slug: 'cilium-from-the-first-node',
-    title: 'Cilium from the first node, and why not the VPC CNI',
-    summary: 'Why the platform creates EKS without the VPC CNI and kube-proxy, what Cilium in ENI mode gives that the default does not, and what it costs.',
+    title: 'Cilium from the first node, and why not the default',
+    summary: 'Why the platform replaces the default EKS networking with Cilium from the moment a cluster is created, what that buys, and what it costs.',
     topics: ['kubernetes', 'cilium', 'aws'],
     body: [
-      h('The default, and why it is not enough'),
-      p(`An EKS cluster comes with the Amazon VPC CNI for pod networking and kube-proxy for Services. They work, and for many clusters they are the right choice. The platform replaces both with Cilium, for reasons that are about security and operations rather than taste.`),
-      h('Why Cilium'),
-      ul(`<strong>Policy by identity, not by IP.</strong> Cilium enforces network policy on workload identity derived from labels, in the kernel with eBPF. Pod IPs change constantly; identities do not. The platform's default-deny model with declared capabilities depends on this.`,
-        `<strong>FQDN policy.</strong> ${c('toFQDNs')} lets a policy say "this workload may reach api.example.com on 443" and have Cilium's DNS proxy enforce it. The VPC CNI's network policy support has no equivalent; the egress gateway's second fence is built on it.`,
-        `<strong>Seeing what was dropped.</strong> Hubble records every flow with its verdict. "Why can't A reach B" becomes a log query instead of a guess, and dropped flows become an alert.`,
-        `<strong>kube-proxy replacement.</strong> Service load balancing in eBPF with Maglev hashing instead of iptables chains that grow with every Service, and node processes can reach ClusterIPs, which the platform uses so nodes pull images through the egress gateway.`,
-        `<strong>L7 only where needed.</strong> When a route needs retries or gRPC-aware balancing, Cilium sends that traffic through a node-local Envoy; everything else stays in the kernel. No sidecar in every pod.`),
+      h('The default, and why it is not enough here'),
+      p(`EKS ships with the AWS VPC CNI and kube-proxy. They work, and for many clusters they are the right choice. The platform replaces both with Cilium for reasons of security and operations, not taste.`),
+      h('What Cilium gives'),
+      ul(`<strong>Policy by identity, not by IP.</strong> Pod addresses change constantly; workload identities do not. The platform's default-deny network model depends on this.`,
+        `<strong>Policy by hostname.</strong> A workload can be allowed to reach one external service by name and nothing else. The controlled path to the internet is built on it.`,
+        `<strong>Seeing what was dropped.</strong> Every flow is recorded with its verdict, so "why can't A reach B" is a query, not a guess, and unexpected drops become alerts.`,
+        `<strong>L7 only where it is needed,</strong> without a sidecar in every pod.`),
       h('Why from the first node'),
-      p(`The common path is to create the cluster with the VPC CNI, install Cilium later, and remove the old CNI with a script. That means two applies, a period where nodes run two datapaths, and a cleanup step that has to be right on every cluster.`,
-        `The platform instead creates EKS with no self-managed add-ons, installs Cilium with Terraform right after the control plane, and only then creates node groups. Nodes carry a ${c('node.cilium.io/agent-not-ready')} taint until Cilium is running on them, and CoreDNS tolerates it. One apply builds a working cluster.`),
-      code('hcl', `
-resource "helm_release" "cilium" {
-  chart = "cilium"
-  wait  = false # nodes join after this release
-  values = [yamlencode({
-    ipam                 = { mode = "eni" }
-    eni                  = { enabled = true, awsEnablePrefixDelegation = true }
-    routingMode          = "native"
-    kubeProxyReplacement = true
-  })]
-}
-module "node_group_system" { depends_on = [helm_release.cilium] }`),
-      h('Why ENI mode'),
-      p(`In ENI mode Cilium gives each pod an address from its node's subnet, as the VPC CNI does. That keeps pods routable in the VPC without overlays, and it is what makes subnet tiers mean something for pods: a pod on a private-tier node is in the private tier and has no route to the internet; a pod on an egress-pool node leaves through that pool's NAT and fixed IP.`),
+      p(`The usual path installs the default networking first and swaps it later, which means two datapaths for a while and a clean-up that must be right on every cluster. The platform builds the cluster with Cilium from the start, so one change produces a working cluster and no node ever runs the old datapath.`),
       h('What it costs'),
-      ul(`<strong>You own the CNI.</strong> Cilium upgrades are platform changes, planned and rolled cell by cell, not an AWS-managed add-on version bump.`,
-        `<strong>Support boundary.</strong> AWS supports the VPC CNI; for Cilium you rely on the project, a commercial distribution, or your own team.`,
-        `<strong>IP planning still matters.</strong> ENI mode uses VPC addresses; prefix delegation makes it efficient, but subnets must be sized for pods, not only nodes.`),
-      p(`For a platform whose security model is built on identity-aware policy, FQDN egress and flow visibility, those costs are worth paying. For a single small cluster with no network policy, the default is fine.`),
+      ul(`<strong>You own the CNI.</strong> Its upgrades are platform changes, rolled cell by cell.`,
+        `<strong>A different support boundary.</strong> AWS supports its own CNI; for Cilium you rely on the project, a commercial distribution or your team.`,
+        `<strong>Address planning still matters.</strong> Subnets are sized for pods, not only for nodes.`),
+      p(`For a platform built on identity-aware policy, hostname egress and flow visibility, those costs are worth paying. For a single small cluster with no network policy, the default is fine.`),
     ],
   },
   {
     slug: 'one-way-to-the-internet',
-    title: 'One way out to the internet, three fences around it',
-    summary: 'How the Secure package makes a cluster unable to reach the internet except through one allowlisting gateway, and why one control is never enough.',
+    title: 'One way out to the internet, several fences around it',
+    summary: 'How the Secure level makes a cluster unable to reach the internet except through one allowlisting exit, and why one control is never enough.',
     topics: ['aws', 'kubernetes', 'cilium', 'envoy', 'security'],
     body: [
       h('The problem'),
-      p(`Most clusters let any pod open a connection to anywhere. A compromised dependency calling home, a cryptominer, data leaving through an innocent-looking HTTPS request: none of them need more than that. Network policy alone does not fix it, because it is one mistake away from open: a broad rule added in a hurry, a selector that matches nothing, an agent left in audit mode.`),
-      h('Three independent fences'),
-      ul(`<strong>Routing.</strong> Node and pod subnets have no default route. Only a dedicated egress tier routes to NAT, and only the egress gateway runs there. A pod that ignores every policy still has nowhere to send internet traffic.`,
-        `<strong>CNI policy.</strong> The gateway pods may reach only the allowlisted hostnames, enforced by Cilium's DNS proxy with ${c('toFQDNs')}. Application pods may reach the gateway only if they carry the capability label.`,
-        `<strong>L7 proxy.</strong> The gateway is an Envoy CONNECT proxy. It forwards only allowlisted ${c('host:port')} pairs and answers everything else with a 403 and a JSON log line.`),
-      p(`A security group lets only the egress tier send HTTPS out of the VPC: a fourth, coarse fence. AWS APIs never touch the gateway; they are reached through VPC endpoints.`),
-      code('yaml', `
-virtual_hosts:
-  - name: allowed
-    domains: ["github.com:443", "*.githubusercontent.com:443", "api.stripe.com:443"]
-    routes:
-      - match: { connect_matcher: {} }
-        route: { cluster: dynamic_forward_proxy, upgrade_configs: [{ upgrade_type: CONNECT, connect_config: {} }] }
-  - name: denied
-    domains: ["*"]
-    routes:
-      - match: { connect_matcher: {} }
-        direct_response: { status: 403 }`),
-      h('The details that matter'),
-      ul(`Wildcards only for a vendor's own zone. ${c('*.github.io')} would let anything hosted on GitHub Pages through; ${c('*.s3.amazonaws.com')} is an exfiltration channel, not an allowlist entry.`,
-        `Nodes pull container images through the same gateway, by a fixed ClusterIP, because they do not use cluster DNS. Even image pulls follow the policy.`,
-        `The gateway is installed by Terraform, before Flux, because Flux reaches GitHub through it.`,
-        `Workloads that must call hosts nobody can list (webhooks to customer URLs) get an egress pool with its own fixed IP and a named exception, instead of a wildcard on the gateway.`),
+      p(`In most clusters any pod can open a connection to anywhere. A compromised dependency calling home, a cryptominer, data leaving through an innocent-looking HTTPS request: none of them need more. Network policy alone is one hurried rule away from open.`),
+      h('Independent fences'),
+      p(`The platform puts several controls in a row, each enforced by a different layer, so a mistake in one is caught by the next:`),
+      ul(`<strong>Routing:</strong> workloads have no route to the internet at all.`,
+        `<strong>Network policy:</strong> only the exit may talk to the outside, and only workloads that declared the need may talk to the exit.`,
+        `<strong>An allowlisting gateway:</strong> the single exit forwards only destinations someone approved and logs every refusal.`,
+        `<strong>Cloud firewalling</strong> as a final coarse layer; cloud APIs never leave the private network at all.`),
       h('What changes'),
-      p(`Leaving the network becomes a decision someone reviews. A new dependency is a one-line allowlist change in a pull request; an unexpected destination shows up as a 403 and a dropped flow instead of a successful connection. And the allowlist is, for free, the documentation of everything the platform talks to.`),
+      p(`Leaving the network becomes a decision someone reviews. A new external dependency is a one-line change in a pull request; an unexpected destination is a refusal in a log instead of a successful connection. Even the nodes follow the same rule. And the allowlist is, for free, the documentation of everything the platform talks to.`),
     ],
   },
   {
     slug: 'declared-network-access',
-    title: 'Capabilities: a network policy model that does not drift',
-    summary: 'A default-deny network policy model where workloads declare dependencies by label, destinations admit the same label, and a narrowly privileged pipeline applies it all.',
+    title: 'Network access a service declares, not one it inherits',
+    summary: 'A default-deny network model where each workload declares what it depends on, each destination admits exactly those callers, and the two sides cannot drift apart.',
     topics: ['kubernetes', 'cilium', 'gitops', 'security'],
     body: [
       h('Why hand-written policies drift'),
-      p(`A caller's egress rule and the destination's ingress rule are usually written in different places by different people. A rule gets copied with more than it needs. A "temporary" broad rule stays because nobody can prove what removing it would break.`),
-      h('Capabilities'),
-      p(`Every tenant namespace is deny-by-default. A shared dependency is a <em>capability</em>: a reusable policy component the namespace lists, and a label the workload carries. The destination admits callers by the same label, so the two sides cannot drift apart.`),
-      code('yaml', `
-# destination side: admit any caller that carries the capability, from any namespace
-ingress:
-  - fromEndpoints:
-      - matchLabels: { netpol.cell.io/svc-payments: "true" }
-        matchExpressions:
-          - { key: k8s:io.kubernetes.pod.namespace, operator: Exists }
-    toPorts: [{ ports: [{ port: "8080", protocol: TCP }] }]`),
-      p(`The ${c('matchExpressions')} line is not decoration: without it, a ${c('fromEndpoints')} selector silently means "only this namespace".`),
-      h('Where the line is'),
-      p(`The test for "is this a capability" is: if a second workload carried this label, would that be correct? Shared services and infrastructure pass it. A destination only one workload uses, such as its own bucket or database, does not: it lives as a private policy in that namespace, so a label can never grant access to someone else's data.`),
+      p(`A caller's rule and the destination's rule are usually written in different places by different people. Rules get copied with more than they need. A "temporary" broad rule stays because nobody can prove what removing it would break.`),
+      h('Declared capabilities'),
+      p(`Every namespace starts with nothing allowed. A workload declares the shared dependencies it needs, and each destination admits callers by the same declaration, so caller and destination are described by one fact rather than two rules. Something only one workload uses, such as its own data store, is never shareable by declaration: a label can not grant access to someone else's data.`),
       h('Guardrails on the guardrails'),
-      ul(`Policies are applied by a Flux service account that can manage Cilium policies and nothing else.`,
-        `CI rejects ${c('world')}, ${c('cluster')} or ${c('0.0.0.0/0')} in allow rules, FQDN patterns that cover a whole provider, CIDR rules without ports, and the cross-namespace selector that silently means "this namespace only".`,
-        `Dropped flows are exported and alerted on, so a missing capability becomes a ticket instead of a timeout someone debugs for a day.`,
-        `Broad legacy rules are removed only after real traffic shows the replacement covers every flow: parity first, removal second.`),
-      p(`Who may talk to whom becomes readable in one directory and reviewable in one pull request.`),
+      ul(`Policies are applied by an identity that can manage network policy and nothing else.`,
+        `CI refuses the shapes of rule that quietly open everything.`,
+        `Dropped flows are reported, so a missing declaration becomes a ticket instead of a day of debugging a timeout.`,
+        `Broad legacy rules are removed only after real traffic proves the replacement covers every flow.`),
+      p(`Who may talk to whom becomes readable in one place and reviewable in one pull request.`),
     ],
   },
   {
     slug: 'policies-proven-to-block',
-    title: 'Testing admission policies both ways',
-    summary: 'Kyverno CEL policies with fixtures that must pass and fixtures that must fail, reported in development and enforced in production from the same files.',
+    title: 'Admission policies that are proven to block',
+    summary: 'Kubernetes admission policies that ship with proof that they reject what they should, reported in development and enforced in production.',
     topics: ['kubernetes', 'kyverno', 'security'],
     body: [
       h('The failure nobody sees'),
-      p(`An admission policy that blocks nothing looks exactly like one that works. A verb that does not exist, a check on a field an attacker controls, a match that never fires: all pass review, all are silent, and all are discovered during an incident.`),
+      p(`An admission policy that blocks nothing looks exactly like one that works. A wrong field, a match that never fires, a check on something an attacker controls: all pass review, all are silent, all are discovered during an incident.`),
       h('Tested both ways'),
-      p(`Every policy ships with fixtures that must be admitted and fixtures that must be rejected <em>by that policy, by name</em>. The test fails if a good fixture is rejected or a bad one gets through.`),
-      code('yaml', `
-results:
-  - { policy: require-approved-registries, resources: [good-app], kind: Deployment, result: pass }
-  - { policy: require-approved-registries, resources: [bad-registry], kind: Deployment, result: fail }
-  - { policy: restrict-load-balancers, resources: [bad-public-lb, bad-misspelled-ranges], kind: Service, result: fail }`),
+      p(`Every policy ships with examples that must be admitted and examples that must be rejected by that policy. If a bad example gets through or a good one is refused, the change does not merge.`),
       h('What the policies cover'),
-      p(`Pod Security Admission handles privileged pods, host access and capabilities natively. Kyverno, in CEL, adds what it does not: images only from the cell registry and signed by the release workflow, pinned versions, requests and memory limits, probes, read-only root filesystems, no default service account, internal load balancers unless exposure is approved, cluster-admin bound only by GitOps, and a namespace syncing only its own secrets.`,
-        `One policy rejects a misspelled load balancer annotation. The controller ignores the misspelling and opens the load balancer to the internet while the manifest looks restricted. That kind of rule comes from incidents, and it is exactly the kind a test must prove.`),
-      h('Same files, two modes'),
-      p(`The action comes from the cell: ${c('Audit')} in development, ${c('Deny')} in staging and production. Teams see violations in their dev cell before production rejects them. Exceptions exist, but each names an owner, a reason and an expiry date, and exempts a workload, never a namespace.`),
+      p(`Built-in Pod Security handles the basics. The platform adds what it does not: where images may come from and who must have signed them, resource and health requirements, what may be exposed publicly and on whose approval, who may grant cluster-wide rights, and which secrets a namespace may receive. Several rules come from incidents, where a manifest looked restricted and was not.`),
+      h('Same rules, two modes'),
+      p(`Development reports violations; production refuses them. Teams see a problem before it blocks a release. Exceptions exist, each with an owner, a reason and an expiry, and they exempt a workload, never a namespace.`),
     ],
   },
   {
     slug: 'guardrails-from-day-one',
     title: 'Guardrails an AWS account inherits on day one',
-    summary: 'Service and resource control policies attached once per OU, tested offline, and changed only after replaying real CloudTrail history against them.',
+    summary: 'Organization-wide guardrails attached once where they are true, so a new account is protected the moment it exists, and changed only with evidence that nothing legitimate breaks.',
     topics: ['aws', 'security', 'terraform'],
     body: [
       h('How guardrails rot'),
-      p(`Guardrails grow account by account: the same rule copied with a different list of ARNs, accounts at the five-policy quota, new accounts with none at all. Nobody can say what an account actually has without reading every policy on its path.`),
+      p(`Guardrails tend to grow account by account: the same rule copied with a different list, accounts at the quota, new accounts with none at all. Nobody can say what an account actually has without reading every policy on its path.`),
       h('One rule, one place'),
-      p(`Each rule lives once, at the highest level of the organization where it is true:`),
-      ul(`<strong>Root:</strong> the audit trail cannot be stopped, the root user can do nothing, nobody leaves the organization, and the tags that grant privilege through ABAC can only be set by security admins.`,
-        `<strong>Workloads OU:</strong> every role has a permissions boundary, regions are locked, IMDSv2 and encryption are required, interactive host access goes through the access proxy.`,
-        `<strong>Production OU:</strong> only CI publishes images, only autoscalers start instances, only code changes cluster access and network edges.`,
-        `<strong>A resource control policy</strong> keeps S3, Secrets Manager and KMS closed to principals outside the organization and to plain HTTP, whatever a resource policy says.`),
-      h('SCPs have no audit mode'),
-      p(`A broken SCP is found by an outage. So every change passes three gates. Offline tests check the quota, that every statement is a Deny, and that the break-glass role keeps a way in. A replay of ninety days of CloudTrail lists every principal the candidate would have denied. And new policies are attached next to the old ones for 48 hours before anything is removed, OU by OU, production last; policies combine as a union of denies, so this never opens a gap.`),
-      code('hcl', `
-run "guardrails_only_deny" {
-  command = plan
-  assert {
-    condition = alltrue(flatten([
-      for p in aws_organizations_policy.scp : [for s in jsondecode(p.content).Statement : s.Effect == "Deny"]
-    ]))
-    error_message = "An SCP contains an Allow statement; guardrails only take permissions away."
-  }
-}`),
-      p(`The replay is the gate that pays for itself: it catches the change that would have stopped node autoscaling in production because one role name did not match a new pattern.`),
+      p(`Each rule lives once, at the highest level of the organization where it is true. The whole organization protects its audit trail and its most powerful identities. Workload accounts get boundaries on every role, approved regions, modern instance metadata and encryption by default. Production adds guards on the write paths that matter most. Data stores stay closed to anyone outside the organization, whatever an individual resource policy says.`),
+      h('Changing guardrails without an outage'),
+      p(`Organization policies have no audit mode: a broken one is found by an outage. So a change is tested before it is attached, checked against how the organization actually behaved, and introduced alongside the old rules before anything is removed, production last. That evidence has caught changes that would have stopped production systems before they shipped.`),
     ],
   },
   {
     slug: 'atlantis-policy-checks',
-    title: 'Atlantis, and a policy a pull request cannot weaken',
-    summary: 'Plans on every pull request, conftest checks on the plan itself, applies only of the reviewed plan, and policies baked into the image that runs them.',
+    title: 'The plan you review is the plan that runs',
+    summary: 'Infrastructure changes planned on every pull request, checked against security policy, applied only after approval, and checked by policies a pull request cannot weaken.',
     topics: ['cicd', 'atlantis', 'terraform', 'security'],
     body: [
       h('What CI applies were missing'),
-      p(`Moving applies from laptops to CI removes credentials from laptops. It does not guarantee that the plan a reviewer approved is the plan that runs, and security rules live only in reviewers' heads.`),
-      h('How the platform applies'),
-      ul(`Atlantis plans every changed stack and posts the plan to the pull request. Projects are generated from the Terramate stack list, so the order follows the stacks' dependencies.`,
-        `Each plan is checked with conftest before it may be applied: protected resources cannot be destroyed without an earlier, reviewed ${c('allow-destroy')} tag; open ingress, wildcard IAM, unencrypted storage and public buckets fail.`,
-        `Apply requires an approving review, a mergeable pull request and a branch up to date with main, and applies exactly the saved plan.`,
-        `Atlantis has its own workload identity that may only assume a plan role and an apply role in each account. No keys.`),
-      code('rego', `
-deny contains msg if {
-  some rc in input.resource_changes
-  rc.type in protected
-  "delete" in rc.change.actions
-  object.get(object.get(rc.change.before, "tags", {}), "allow-destroy", "false") != "true"
-  msg := sprintf("%s would be destroyed; tag it allow-destroy=true in a reviewed change first", [rc.address])
-}`),
-      h('The policies live in the image'),
-      p(`If the policies were read from the repository, a pull request could change the policy that checks it. They are baked into the Atlantis image instead, built and signed by CI; a policy change is a new image, reviewed like any other change. Overrides exist, but only the policy owners can approve one, and the approval is recorded on the pull request.`),
+      p(`Moving applies from laptops to CI removes credentials from laptops. It does not guarantee that the plan a reviewer approved is the plan that runs, and security rules still live only in reviewers' heads.`),
+      h('What the platform guarantees'),
+      ul(`Every change shows its plan on the pull request, in dependency order.`,
+        `Each plan is checked against security policy before it may be applied: destroying protected resources, opening access to the world, wildcard permissions and unencrypted storage fail.`,
+        `Only an approved, up-to-date pull request applies, and it applies exactly the plan that was reviewed.`,
+        `The applying system has its own identity and no long-lived keys.`,
+        `Drift is found the next morning, not during the next incident.`),
+      h('A policy a pull request cannot weaken'),
+      p(`If the policies lived next to the code they check, a pull request could change the rules that judge it. They do not. Changing a policy is its own reviewed release, and overriding one is a recorded decision by its owners.`),
     ],
   },
   {
     slug: 'three-products-one-repository',
-    title: 'Three products from one repository with Terramate',
-    summary: 'One variable selects the package, Terramate composes the stacks, and a renderer gives each client a repository that contains only what they bought.',
+    title: 'Your repository contains only what you bought',
+    summary: 'The platform is delivered as your own code, and the code you receive matches your package exactly, with no switched-off features and nothing from a higher package.',
     topics: ['terraform', 'terramate'],
     body: [
       h('The problem with feature flags'),
-      p(`The platform is sold as three packages. Clients receive the source. Flags that switch off what a client did not buy still ship that code to them: noise to maintain, capabilities they do not have, and the higher packages given away.`),
-      h('One variable composes the stacks'),
-      p(`Capabilities live in separate modules per package. A global, ${c('tier')}, decides which modules each stack is generated from; Terramate writes the Terraform and it is committed, so reviewers read real code.`),
-      code('hcl', `
-generate_hcl "egress.tf" {
-  condition = tm_contains(terramate.stack.tags, "cell") && global.tier != "launch"
-  content {
-    module "egress" {
-      source     = "\${terramate.stack.path.to_root}/modules/cell-egress"
-      cluster_ip = module.cell.egress.cluster_ip
-    }
-  }
-}`),
-      h('Rendering a client copy'),
-      p(`A manifest maps paths to the lowest package that includes them; lines that differ inside shared files carry markers. The renderer copies only what the client's package includes, cuts the marked blocks, sets the tier, regenerates and validates. The result contains no trace of the higher packages.`),
-      code('hcl', `
-  egress_allowlist_hosts = [
-    "api.stripe.com",
-    # >>> tier:autonomous
-    "api.anthropic.com",
-    # <<< tier:autonomous
-  ]`),
-      p(`CI renders all three packages from the baseline on every pull request and runs the full checks on each, so a change that leaks a higher package into a lower one fails before it merges.`),
+      p(`The platform is sold in packages and delivered as source. Shipping everything with flags turned off would give each client code they do not use, capabilities they have not bought, and noise to maintain.`),
+      h('What you receive'),
+      ul(`<strong>Only your package.</strong> The repository you receive is generated for your package and contains no trace of the others.`,
+        `<strong>Real code, not templates.</strong> What you review is what runs; nothing is generated behind your back at deploy time.`,
+        `<strong>The same quality bar for every package.</strong> Every package is built and checked on every change, so a lower package is never a stripped-down afterthought.`,
+        `<strong>A clear upgrade path.</strong> Moving to the next package adds code to your repository as a reviewable change.`),
     ],
   },
   {
     slug: 'upgrades-through-a-baseline-branch',
-    title: 'Upgrades a client receives as a pull request',
-    summary: 'How a turnkey platform keeps moving after handover: a baseline branch in every client repository, and Git merging new releases with the client\'s own changes.',
+    title: 'Upgrades you receive as a pull request',
+    summary: 'How a platform you own keeps moving after handover: each new release arrives in your repository as a normal pull request, merged with your own changes.',
     topics: ['gitops', 'terraform', 'cicd'],
     body: [
       h('Turnkey is not frozen'),
-      p(`A client owns their copy of the platform. Kubernetes, add-ons and providers release every month and security fixes do not wait. Without a delivery channel, a platform starts decaying the day it is handed over.`),
-      h('The vendor-branch pattern'),
-      p(`Each client repository keeps a ${c('baseline')} branch that only ever contains rendered baseline code, never client edits. ${c('.platform.json')} records the baseline version and package.`),
-      ol(`A new baseline version is rendered for the client's package onto ${c('baseline')}.`,
-        `A branch from ${c('main')} merges ${c('baseline')}.`,
-        `Git combines the new baseline with the client's own changes; conflicts appear only where the client edited baseline files.`,
-        `The client reviews and merges a normal pull request; plans and policy checks run as for any change.`),
-      p(`Moving from one package to the next is the same operation with a different package: the new modules arrive as a pull request, next to the client's own work.`),
+      p(`Kubernetes, add-ons and providers release every month, and security fixes do not wait for a contract renewal. Without a delivery channel, a platform starts decaying the day it is handed over.`),
+      h('How a release reaches you'),
+      p(`Your repository keeps a clean line of the platform as delivered, separate from your own work. A new release lands on that line, and version control combines it with your changes. You receive an ordinary pull request: plans and policy checks run on it as on any change, and conflicts appear only where you changed platform code yourself.`),
+      p(`Moving to a higher package is the same operation.`),
       h('Who runs it'),
-      p(`The mechanism is technical, not contractual. A client can run the upgrade themselves from release notes, or have it prepared, reviewed and applied under a support plan. Either way the change is a diff they can read.`),
+      p(`The mechanism is technical, not contractual. You can apply releases yourself from the release notes, or have them prepared, reviewed and applied under a support plan. Either way the change is a diff you can read.`),
     ],
   },
   {
     slug: 'one-role-for-every-service',
     title: 'One IAM role for every service, and no neighbour\'s secrets',
-    summary: 'EKS Pod Identity session tags turn one shared role into per-service permissions: a pod reads only the secrets, tables and buckets under its own namespace and service account.',
+    summary: 'Workload identity turns one shared role into per-service permissions: a service reaches only its own secrets, tables and buckets, without a role per service to maintain.',
     topics: ['aws', 'kubernetes', 'security'],
     body: [
       h('The IAM sprawl problem'),
-      p(`A role per service means a Terraform change for every new service, dozens of near-identical policies, and the steady temptation to reuse one role for "just this other service".`),
-      h('Session tags do the scoping'),
-      p(`EKS Pod Identity tags every session with the pod's namespace and service account. One shared application role can then use those tags in resource paths:`),
-      code('hcl', `
-statement {
-  sid     = "OwnSecretsOnly"
-  actions = ["secretsmanager:GetSecretValue"]
-  resources = [
-    "arn:aws:secretsmanager:\${region}:\${account}:secret:\${cell}/services/$\${aws:PrincipalTag/kubernetes-namespace}/$\${aws:PrincipalTag/kubernetes-service-account}/*"
-  ]
-}`),
-      p(`A pod in ${c('payments')} running as ${c('api')} reads ${c('<cell>/services/payments/api/*')} and nothing else. Tables and buckets follow the same prefix rule. A label change cannot widen it: the tags come from the platform, not from the pod.`),
+      p(`A role per service means an infrastructure change for every new service, dozens of near-identical policies, and a steady temptation to reuse one role for "just this other service".`),
+      h('Identity does the scoping'),
+      p(`EKS Pod Identity tells AWS which namespace and service account a request comes from. One shared role uses that to limit every service to resources under its own name. A new service gets the right permissions without a new role, and a service cannot widen its own access, because the identity comes from the platform, not from the workload.`),
       h('Where it stops'),
-      ul(`A workload that needs something outside its prefix gets its own role, declared in code with the reason.`,
-        `External Secrets syncing into a namespace is limited to that namespace's prefix by an admission policy, so the cluster-wide secret store cannot become a back door.`,
-        `Every role, shared or not, carries a permissions boundary the organization requires.`),
+      ul(`A workload that needs something outside its own space gets its own role, declared in code with the reason.`,
+        `Secret delivery into a namespace is limited to that namespace's own secrets, so a shared mechanism cannot become a back door.`,
+        `Every role, shared or not, sits inside the boundary the organization requires.`),
     ],
   },
   {
     slug: 'nodes-without-internet',
-    title: 'Nodes without internet: Bottlerocket and ECR pull-through cache',
-    summary: 'How nodes start, join and pull images when their subnets have no route out, and what that removes from the attack surface.',
+    title: 'Nodes without internet',
+    summary: 'How nodes start, join the cluster and pull images when their network has no route out, and what that removes from the attack surface.',
     topics: ['aws', 'kubernetes', 'security'],
     body: [
       h('Why bother'),
-      p(`If a node can reach the internet, so can anything that compromises it. In the Secure package, node and pod subnets have no default route at all. That only works if nodes can still boot, join the cluster and pull images.`),
+      p(`If a node can reach the internet, so can anything that compromises it. In the Secure level, nodes and workloads have no route out at all. That only works if nodes can still boot, join the cluster and pull images.`),
       h('What makes it work'),
-      ul(`<strong>VPC endpoints</strong> for every AWS API a node needs: ECR, STS, EKS, EC2, SSM, KMS, logs. S3 and DynamoDB through gateway endpoints.`,
-        `<strong>ECR pull-through cache</strong> for the platform's own images: quay, registry.k8s.io, public ECR, GitHub and Docker Hub are mirrored into the account's ECR on first pull, scanned continuously, and expired when unused. The CNI and Flux images come from there.`,
-        `<strong>The egress gateway as the node's proxy</strong> for anything else. Bottlerocket's ${c('https-proxy')} setting sends containerd's pulls through the gateway by a fixed ClusterIP, so node pulls obey the same allowlist as everything else.`),
-      code('toml', `
-[settings.host-containers.admin]
-enabled = false
-[settings.kernel]
-lockdown = "integrity"
-[settings.network]
-https-proxy = "http://172.20.0.50:3128"
-no-proxy = [".svc", ".cluster.local", "169.254.169.254", ".amazonaws.com"]`),
-      h('Bottlerocket, hardened'),
-      p(`A minimal OS with an immutable root filesystem. The admin and control host containers are off: access is through the cluster, not the host. Kernel lockdown is on, IMDSv2 is required with a hop limit of one, so a pod cannot reach the node's instance credentials, and every volume is encrypted with the cell's key.`),
+      ul(`Every cloud API a node needs is reached privately.`,
+        `Third-party images are mirrored into your own registry, scanned continuously and expired when unused.`,
+        `Anything else a node must fetch goes through the same allowlisting exit as the workloads, so even image pulls follow the policy.`),
+      h('A minimal, locked-down operating system'),
+      p(`Nodes run an immutable, minimal OS. There is no interactive access to the host: operations go through the cluster. Workloads cannot reach the node's own cloud credentials, and every volume is encrypted with keys you own.`),
     ],
   },
   {
     slug: 'an-sre-agent-inside-the-cluster',
-    title: 'An SRE agent inside the cluster that acts within your rules',
-    summary: 'oncall-kit for behaviour, Claude Tag for the conversation, self-hosted runners in the cell for the data, and an action broker for everything it changes: how the Autonomous package builds its agents.',
+    title: 'A cluster of agents that operates production',
+    summary: 'SRE and DevSecOps agents in their own cluster: they investigate from outside your production, act only on a plan a named person approved, with access that exists only for that plan.',
     topics: ['agents', 'observability', 'kubernetes', 'security'],
     body: [
-      h('What the agent is for'),
-      p(`Most alerts need the same first hour of work: which service, since when, what changed, what the logs say. An agent can do that hour. The risk is not that it is slow; it is that it acts with too much power on too little evidence.`),
-      h('Built on proven pieces'),
-      ul(`<strong>Behaviour: <a href="https://github.com/anthropics/oncall-kit">oncall-kit</a>.</strong> Its setup mines the team's incident history into triage playbooks, ends every phase at a human gate, and requires a blind replay eval and a shadow period before anyone relies on it.`,
-        `<strong>Conversation: Claude Tag</strong> in the team's Slack on-call and incident channels.`,
-        `<strong>Execution: self-hosted runners inside the cell.</strong> Hosted sandboxes cannot reach private endpoints, so sessions run next to the data. An orchestrator holds the environment key and starts one Kubernetes Job per session with a single-use work order; the key never reaches a pod that runs a session.`),
-      code('sh', `
-# spawn-runner hook: one Job per order, named from the order ID so redelivery creates nothing new
-name="runner-$(printf '%s' "$CLAUDE_RUNNER_ORDER_ID" | tr 'A-Z_' 'a-z-' | cut -c1-50)"
-kubectl -n agents get job "$name" >/dev/null 2>&1 && exit 0
-# ... create the Job, store the work order in a Secret owned by it, exit without waiting`),
-      h('Acting, not only advising'),
-      p(`oncall-kit keeps its agent read-only. That is the right start, but an agent that can only describe the restart still wakes someone up to type it. So the agent can act, through one door: an <strong>action broker</strong> in the cell. The agent's own identity stays read-only; to change something it asks the broker, with a reason.`),
-      code('sh', `
-act restart deployment/checkout -n shop \\
-  --reason "OOMKilled 6 times since 02:10 after the 1.42 rollout; memory flat on 1.41"
-# pending a1b2c3: waiting for approval in #platform-approvals`),
-      p(`The broker knows five typed actions: restart a workload, scale it up to a ceiling, delete one pod, reconcile or resume a Flux object. There is no action that runs a command or applies a manifest. A policy in Git says which namespaces are open, who may approve, and which actions may run without asking, up to a number per hour. Everything starts behind approval: the broker posts the request to Slack with Approve and Reject buttons and runs it only when someone on the approver list presses one. When a team has approved the same restart for the tenth time, they move that action to run on its own with a pull request, not a prompt.`),
-      p(`Lasting fixes, such as a memory limit, a configuration value or a version, stay pull requests. The DevSecOps agent writes only pull requests; branch protection keeps merging with people.`),
+      h('What the agents are for'),
+      p(`Most alerts need the same first hour of work: which service, since when, what changed, what the logs say. Most fixes are the same handful of actions. Agents can do that hour and those actions. The risk is not that they are slow; it is that they act with too much power on too little evidence.`),
+      h('Outside your production, looking in'),
+      p(`The agents run in a cluster of their own, next to production rather than inside it. Each conversation runs in its own isolated sandbox that exists for one task. A compromised or confused session has nothing standing to abuse: no credentials at rest, no route anywhere it was not given.`),
+      h('Read by default, act by plan'),
+      ul(`<strong>Reading needs no approval</strong> and never includes secret values.`,
+        `<strong>Acting needs a plan:</strong> what will change, why (the symptom and the measurement behind it), the dry run, how success is checked and how it is rolled back.`,
+        `<strong>A named person approves the plan</strong> in chat. Silence is a rejection. The approver is checked by the platform, not by the model.`,
+        `<strong>Access exists only for that plan,</strong> briefly, and refuses anything outside it. A step the plan did not name needs a new plan.`,
+        `<strong>Lasting fixes are pull requests.</strong> A direct action is relief, and it ends with a change in code so the platform does not drift.`),
+      h('Autonomy is earned, per action'),
+      p(`Every kind of action starts behind approval. A kind of action can run on its own only after a track record of approved, harmless runs, by an explicit policy change your team reviews. It still gets plan-scoped access and still reports every run; a single harmful run or a human rollback sends it back to approval automatically. The riskiest kinds of change never become autonomous. See <a href="notes-autonomy-levels.html">the six levels of operations autonomy</a>.`),
+      h('Agents that know your system'),
+      p(`The agents learn from your incident history, runbooks and the people who run the system, and every line they learn keeps its source. Before anyone relies on them, they are examined on past incidents they have not seen and then watched in a shadow period where they only advise. Each agent's knowledge is your code, owned by the team responsible for it, and changes only by review.`),
       h('Guarantees that do not depend on the model'),
-      ul(`The agent's own RBAC is read-only, with no Secrets, no exec, no write verbs; managed settings in the image deny direct write commands.`,
-        `The broker can run its five actions and nothing else. Its role is bound only in the namespaces the policy opens, and platform namespaces (Flux, Kyverno, the gateway, the agents themselves) are refused in its code as well.`,
-        `Approvers are checked by the broker against the chat identity; a request nobody answers expires as rejected; <code>enabled: false</code> stops every action.`,
-        `Network: the model API, GitHub, the in-cluster observability endpoints and the broker, nothing else.`,
-        `Every request, decision and result is logged with the agent's reason and the approver.`),
-      p(`Text the agent reads from logs, alerts and tickets is data, never instructions; that rule is in its prompt, and the credentials make sure it does not matter if the prompt is ignored.`),
+      ul(`Text the agents read from logs, alerts, tickets and each other is data, never instructions, and the access model makes sure it would not matter if a prompt were ignored.`,
+        `One switch stops every action at once, and live access can be revoked all at once.`,
+        `Every request, decision, grant and result is recorded and traceable to the person who approved it.`),
+    ],
+  },
+  {
+    slug: 'ci-agents',
+    title: 'Agents in CI that fix what an update broke',
+    summary: 'Dependency updates arrive continuously; when one breaks the build, an agent in that same CI run adapts the code, inside a sandbox, and hands the result to your review.',
+    topics: ['agents', 'cicd', 'security'],
+    body: [
+      h('Why updates are late'),
+      p(`Keeping dependencies current is easy to automate until an update breaks the build. Then the pull request sits red, someone has to read the changelog and adapt the code, and the fixes for real vulnerabilities wait behind it. Most teams end up months behind, and an advisory finds them there.`),
+      h('A steady flow of updates'),
+      p(`<a href="https://docs.renovatebot.com/">Renovate</a> keeps a few living pull requests per repository, grouped by kind: security fixes, major versions, everything else, and lockfile upkeep. Only security fixes merge themselves, and only where tests and a vulnerability scan pass first. Everything else waits for a person.`),
+      h('An agent where the build failed'),
+      p(`When an update breaks the build or the tests, an agent starts inside that same CI run. It sees the failure, adapts the code to the new version, checks the step that failed, and proposes the change on the pull request with a report: the cause, what changed, what it verified, and what a person still has to decide.`),
+      h('Guarantees that do not depend on the model'),
+      ul(`<strong>A sandbox with nowhere to go.</strong> The agent has no network, no write access to the repository and no model credential of its own.`,
+        `<strong>No keys to steal.</strong> Access to the model is bound to the identity of one workflow; nothing is stored or rotated.`,
+        `<strong>Only code, never the rules.</strong> Its change is checked before it lands: it may not touch CI, dependency manifests, build files or the agents' own instructions, may not add or delete files, and may not switch off a test or a lint rule.`,
+        `<strong>A fixed number of attempts,</strong> then a person. A pull request an agent touched is never merged automatically.`,
+        `<strong>Signed and attributable.</strong> Every change is a signed commit by a separate identity, with its report next to it.`),
+      h('It knows your product'),
+      p(`The CI agents start from what the <a href="notes-sre-agent.html">operations agents</a> have learned about your system: its services, conventions, past incidents and the lessons drawn from them. They read that knowledge and cannot change it. What fails in CI becomes material for the operations agents to learn from. That is why it is one product, not two.`),
+    ],
+  },
+  {
+    slug: 'autonomy-levels',
+    title: 'Six levels of operations autonomy',
+    summary: 'A maturity model for AI in operations: from no agents to production that only agents touch, measured by who approves a change rather than by which tools you bought.',
+    topics: ['agents', 'security'],
+    body: [
+      h('Why a model'),
+      p(`"We use AI in operations" can mean a chat window or an agent that restarts services at night. The useful question is not which model you run but who approves a change in production. The levels below describe that, one step at a time.`),
+      h('The levels'),
+      ul(`<strong>Level 0. People only.</strong> Every investigation and every change is done by hand.`,
+        `<strong>Level 1. Agents answer.</strong> Agents read production and answer questions in chat. They change nothing.`,
+        `<strong>Level 2. Agents investigate and propose.</strong> Every alert arrives already investigated, with cause and evidence. Fixes are proposed as pull requests that people review. The agents have learned your system and passed an examination on your past incidents.`,
+        `<strong>Level 3. Agents act on approved plans.</strong> A named person approves a bounded plan in chat; the agent carries it out with access that exists only for that plan.`,
+        `<strong>Level 4. Agents earn autonomy.</strong> The first kinds of action, proven by a record of approved, harmless runs, run without waiting for a person, within limits, and fall back to approval on the first mistake.`,
+        `<strong>Level 5. Production only agents touch.</strong> Routine operations are autonomous under policy people wrote. People have no standing access to production; they set policy, approve what policy does not cover, and read the audit.`),
+      h('Moving up'),
+      p(`Each step is earned with evidence, not declared. Autonomy is granted per kind of action and per part of the system, never for "the agent" as a whole, and the riskiest kinds of change stay with people at every level. Most teams that start today can reach Level 2 quickly; Level 3 needs the access model in place; Levels 4 and 5 follow from the record.`),
+      h('Where we start'),
+      p(`An assessment places your operations on this scale and lays out what each next step needs: knowledge, access, approvals and the evidence to earn the next level.`),
+    ],
+  },
+  {
+    slug: 'agents-only-production',
+    title: 'Production that only agents touch',
+    summary: 'Why closing standing human access to production, and letting agents act on approved, temporary, audited access instead, makes production safer, not riskier.',
+    topics: ['agents', 'security', 'aws', 'kubernetes'],
+    body: [
+      h('Standing access is the attack surface'),
+      p(`Most production breaches and outages involve someone, or something holding someone's credentials, that had more access than the moment required. Administrator access that exists all the time, for many people, is the largest attack surface most companies have.`),
+      h('The alternative'),
+      p(`People keep authority, not access. Agents do the operating, and every change they make passes through the same narrow door: a plan, an approval by policy or by a named person, access that exists only for that plan and only briefly, and a record of everything that happened.`),
+      ul(`<strong>People decide.</strong> They write the policy, approve what it does not cover, and own the outcome.`,
+        `<strong>Agents act.</strong> They investigate, propose, carry out and verify, and they never approve themselves or each other.`,
+        `<strong>Nothing is standing.</strong> No human and no agent holds production write access between changes.`,
+        `<strong>Everything is recorded,</strong> in a form an auditor can follow from the alert to the approver.`),
+      h('Getting there'),
+      p(`Nobody switches human access off on day one. Agents earn trust level by level, and human access is narrowed as each kind of operation moves to the agents, with an audited emergency path for people that remains. See <a href="notes-autonomy-levels.html">the six levels of operations autonomy</a>.`),
+      p(`Available to enterprises in <a href="ai-factory.html">AI Factory</a>.`),
     ],
   },
 ];
-
-function ol(...items) { return `<ol>${items.map((i) => `<li>${i}</li>`).join('')}</ol>`; }

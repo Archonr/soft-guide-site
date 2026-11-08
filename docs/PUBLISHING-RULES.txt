@@ -1,0 +1,50 @@
+SOFT GUIDE — WHAT THE PUBLIC SITE MAY SAY
+
+This repository is public and every push to main publishes softguide.dev.
+Treat every line here as published, including drafts and commit messages.
+
+THE TEST
+
+A page says what we deliver and why it matters. It does not say how we
+build it. Before publishing, ask: could a competent engineer rebuild this
+from the page alone? If yes, cut until the answer is no.
+
+PUBLISH
+
+- The problem, in the reader's words, and what it costs them.
+- The outcome and the guarantees we stand behind ("nothing changes without
+  an approval", "an account inherits the guardrails on day one").
+- Principles and trade-offs at the level of a conference talk abstract.
+- Widely known open-source tools by name (Kubernetes, Flux, Cilium, Envoy,
+  Terraform) where naming them builds trust.
+- Packages, process, what the client receives, how an engagement runs.
+- The operations autonomy levels as a model, without the gates between
+  them.
+
+DO NOT PUBLISH
+
+- Code, configuration, policy text, commands, test fixtures, diagrams
+  labelled with real resource, label, file or repository names.
+- Numbers that are part of the method: thresholds, gates, time windows,
+  limits, counts, quotas, ratios.
+- Step-by-step sequences of how something is built, rolled out or tested.
+- The exact composition of the agent stack: which runtime, sandbox,
+  chat integration, behaviour kit or access broker, and how they connect.
+- Internal component names, repository layout, renderer or packaging
+  mechanics, upstream patches.
+- Open questions, known gaps, risks and weaknesses of our own designs.
+- Client, employer, partner-project or person names; account IDs, IPs,
+  hostnames, domains other than our own.
+- Competitor names and comparisons.
+
+WHERE THE DETAIL LIVES
+
+Method, numbers and designs stay in the private repositories and are shared
+with a client under contract. The site points to a conversation, not a
+recipe.
+
+ENFORCEMENT
+
+tests/site.test.mjs fails a build whose notes contain code blocks, IP
+addresses, ARNs, template variables or locally listed private terms.
+A human still reads every page against this file before a release.

@@ -18,7 +18,7 @@ after(()=>rm(fixture,{recursive:true,force:true}));
 const run=(...args)=>spawnSync(process.execPath,['scripts/build.mjs',...args],{cwd:fixture,encoding:'utf8'});
 const output=file=>readFile(path.join(fixture,'dist',file),'utf8');
 const {articles}=await import(path.join(root,'src/articles.mjs'));
-const pages=['index.html','platform.html','notes.html','services.html','about.html','contact.html','cv.html','404.html',...articles.map(a=>`notes-${a.slug}.html`)];
+const pages=['index.html','platform.html','secure.html','ai-factory.html','notes.html','about.html','contact.html','cv.html','404.html',...articles.map(a=>`notes-${a.slug}.html`)];
 
 test('review build has real pages, working internal paths, unique IDs and metadata',async()=>{
  const built=run(); assert.equal(built.status,0,built.stderr);
@@ -50,7 +50,7 @@ test('public checkout puts the approved email first, LinkedIn second, and has an
  assert.match(contact,/href="mailto:korkach\.vd@gmail\.com\?subject=/);
  assert.doesNotMatch(contact,/tel:/);
  assert.match(await output('cv.html'),/Previous experience — to confirm/);
- assert.match(await output('services.html'),/does not provide penetration testing/);
+ assert.match(await output('secure.html'),/does not provide penetration testing/);
  assert.match(await output('robots.txt'),/Disallow: \//);
 });
 
@@ -95,7 +95,7 @@ test('release refuses unapproved content; approved release ignores local-only da
  assert.doesNotMatch(contact,/<form|mailto:|tel:/);
  assert.doesNotMatch(contact,/private@example.org|421000000000/);
  assert.doesNotMatch(await output('cv.html'),/\[Employer\]|Previous experience — to confirm/);
- assert.match(await output('sitemap.xml'),/https:\/\/softguide.dev\/services.html/);
+ assert.match(await output('sitemap.xml'),/https:\/\/softguide.dev\/ai-factory.html/);
  assert.match(await output('robots.txt'),/Allow: \//);
 });
 
@@ -111,6 +111,16 @@ test('case studies carry no account IDs or locally listed private terms',async()
   for(const term of terms) assert.ok(!html.includes(term.toLowerCase()),`${file}: contains a private term`);
  }
  for(const a of articles.filter(a=>a.figure)) assert.match(await output(`notes-${a.slug}.html`),/<svg viewBox=/,`${a.slug}: diagram`);
+});
+
+test('notes say what and why, not how (docs/PUBLISHING-RULES.txt)',async()=>{
+ for(const a of articles){
+  const text=[a.title,a.summary,a.body,a.figure||'',a.experience||''].join(' ');
+  assert.doesNotMatch(text,/<pre\b/,`${a.slug}: code block`);
+  assert.doesNotMatch(text,/\b\d{1,3}(?:\.\d{1,3}){3}\b/,`${a.slug}: IP address`);
+  assert.doesNotMatch(text,/\barn:aws/i,`${a.slug}: ARN`);
+  assert.doesNotMatch(text,/\$\{/,`${a.slug}: template variable`);
+ }
 });
 
 test('old addresses forward to the note that holds their content',async()=>{

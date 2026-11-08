@@ -8,6 +8,10 @@ Public deployment to GitHub Pages and the custom domain `softguide.dev` was auth
 
 Default review builds block search indexing. Robots directives are not access control: do not upload review builds to a public host. Keep this repository separate from all financial, accounting, tax, identity, and client materials in its parent workspace.
 
+## What the site may say
+
+The repository is public and `main` publishes the site. Every page follows `docs/PUBLISHING-RULES.txt`: what we deliver and why, never how we build it. A test enforces the mechanical part.
+
 ## Run locally
 
 Use Node.js 22 or newer. No dependency installation is needed.
