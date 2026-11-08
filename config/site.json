@@ -6,5 +6,6 @@
   "contactsApproved": true,
   "contentApproved": true,
   "resumeApproved": true,
-  "allowIndexing": true
+  "allowIndexing": true,
+  "strataUrl": ""
 }

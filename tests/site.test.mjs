@@ -18,7 +18,7 @@ after(()=>rm(fixture,{recursive:true,force:true}));
 const run=(...args)=>spawnSync(process.execPath,['scripts/build.mjs',...args],{cwd:fixture,encoding:'utf8'});
 const output=file=>readFile(path.join(fixture,'dist',file),'utf8');
 const {articles}=await import(path.join(root,'src/articles.mjs'));
-const pages=['index.html','platform.html','notes.html','services.html','about.html','contact.html','cv.html','404.html',...articles.map(a=>`notes-${a.slug}.html`)];
+const pages=['index.html','platform.html','agents.html','notes.html','services.html','about.html','contact.html','cv.html','404.html',...articles.map(a=>`notes-${a.slug}.html`)];
 
 test('review build has real pages, working internal paths, unique IDs and metadata',async()=>{
  const built=run(); assert.equal(built.status,0,built.stderr);

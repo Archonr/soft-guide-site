@@ -28,6 +28,7 @@ const plan = [
   ['three-products-one-repository', null, 'three-products-one-repository'],
   ['upgrades-through-a-baseline-branch', null, 'upgrades-through-a-baseline-branch'],
   ['sre-agent', 'sre-agent', 'an-sre-agent-inside-the-cluster'],
+  ['ci-agents', null, 'ci-agents'],
   ['autonomy-levels', null, 'autonomy-levels'],
   ['agents-only-production', null, 'agents-only-production'],
 ];
@@ -40,8 +41,9 @@ const packageOf = {
   'nodes-without-internet': 'Secure package',
   'three-products-one-repository': 'How every package is delivered',
   'upgrades-through-a-baseline-branch': 'Every package · delivered under a support plan',
-  'autonomy-levels': 'Autonomous package · autonomy assessment',
-  'agents-only-production': 'Autonomous package · for enterprises',
+  'ci-agents': 'Autonomous operations · for enterprises',
+  'autonomy-levels': 'Autonomous operations · autonomy assessment',
+  'agents-only-production': 'Autonomous operations · for enterprises',
 };
 
 export const articles = plan.map(([slug, cs, ns], i) => {

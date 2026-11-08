@@ -203,8 +203,8 @@ export const platform = {
       items: ['AWS organization and landing zone', 'A cell: VPC, EKS on Graviton, Cilium, Karpenter', 'GitOps with Flux; Terraform and Terramate for AWS', 'Atlantis: plans on pull requests, policy checks, approved applies, drift detection', 'Prometheus, Grafana, Loki and Tempo with alerts as code', 'Architecture guide, runbooks and a handover week']},
     {id: 'secure', name: 'Secure', lead: 'Everything in Launch, plus the controls auditors and attackers both test first.',
       items: ['Organization guardrails: SCPs and RCPs with offline tests', 'Admission policy, tested both ways, enforced in production', 'Default-deny network policy with declared capabilities', 'One controlled path to the internet', 'Secrets with rotation; backups with tested restores', 'Evidence pack mapped to CIS and AWS Foundational Security Best Practices']},
-    {id: 'autonomous', name: 'Autonomous', lead: 'Everything in Secure, plus a cluster of agents that operates it. For enterprises.',
-      items: ['SRE agent: investigates every alert, reports cause and evidence', 'DevSecOps agent: turns findings into fixes as pull requests', 'Agents act on plans a named person approves, with access that exists only for that plan', 'Autonomy earned per kind of action from a reviewed record', 'Agents in their own cluster, outside your production', 'Full audit, from the alert to the approver']}
+    {id: 'autonomous', name: 'Autonomous', lead: 'Everything in Secure, plus agents that operate it and fix your CI. For enterprises.',
+      items: ['SRE agent: investigates every alert, reports cause and evidence', 'DevSecOps agent: turns findings into fixes as pull requests', 'CI agents: adapt the code when a dependency update breaks the build', 'Agents act on plans a named person approves, with access that exists only for that plan', 'Autonomy earned per kind of action from a reviewed record', 'Agents in their own cluster, outside your production', 'Full audit, from the alert to the approver']}
   ],
   modules: [
     ['CI/CD foundation', 'Atlantis with policy checks, reusable pipelines, OIDC to AWS, signed images, drift detection.'],
@@ -212,7 +212,7 @@ export const platform = {
     ['Kubernetes hardening', 'Admission policy, default-deny network policy, workload identity.'],
     ['Controlled egress', 'One allowlisted path out for clusters and CI runners.'],
     ['Observability', 'Metrics, logs, traces, SLO burn-rate alerts, dashboards as code.'],
-    ['Agents cluster', 'For production you already run: starts read-only, earns the right to act. Enterprise.'],
+    ['Agents', 'For production and CI you already run: starts read-only, earns the right to act. Enterprise.'],
     ['Autonomy assessment', 'Where your operations are on the six levels, and what the next level needs.']
   ],
   steps: [
