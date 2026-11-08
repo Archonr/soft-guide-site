@@ -2,8 +2,8 @@
 // employer: no company, product, account or domain names appear here.
 
 export const topics = {
-  aws: 'AWS', terraform: 'Terraform', terramate: 'Terramate', kubernetes: 'Kubernetes', cilium: 'Cilium',
-  envoy: 'Envoy', flux: 'Flux', gitops: 'GitOps', cicd: 'CI/CD', atlantis: 'Atlantis', kyverno: 'Kyverno',
+  aws: 'AWS', pulumi: 'Pulumi', kubernetes: 'Kubernetes', cilium: 'Cilium',
+  envoy: 'Envoy', flux: 'Flux', gitops: 'GitOps', cicd: 'CI/CD', kyverno: 'Kyverno',
   security: 'Security', observability: 'Observability', agents: 'AI agents'
 };
 
@@ -57,11 +57,11 @@ const diagrams = {
     box(640, 160, 210, 60, 'Enforce in prod', 'violations rejected', 'accent') +
     arrow(240, 50, 328, 120) + arrow(240, 140, 328, 140) + arrow(240, 220, 328, 160) + arrow(550, 125, 638, 75) + arrow(550, 155, 638, 185, '', 'accent')),
 
-  delivery: svg(860, 250, 'Delivery: a pull request gets checks; Atlantis plans the changed stacks and checks each plan against policy; after approval Atlantis applies the plan that was reviewed; a nightly plan opens an issue on drift.',
-    box(10, 20, 190, 60, 'Pull request', 'checks and scans') +
-    box(230, 20, 190, 60, 'Atlantis plan', 'changed stacks only') +
-    box(450, 20, 190, 60, 'Policy check', 'on the plan itself', 'accent') +
-    box(670, 20, 180, 60, 'Approve, apply', 'the reviewed plan') +
+  delivery: svg(860, 250, 'Delivery: a pull request gets tests and a read-only preview checked against policy; after review and merge the deployment service applies the merged code, production after a person approves; a scheduled check reports drift.',
+    box(10, 20, 190, 60, 'Pull request', 'tests and scans') +
+    box(230, 20, 190, 60, 'Preview', 'read-only') +
+    box(450, 20, 190, 60, 'Policy check', 'every preview, every update', 'accent') +
+    box(670, 20, 180, 60, 'Merge, deploy', 'prod: a person approves') +
     box(450, 160, 400, 60, 'Drift check', 'every stack · an issue when it drifts') +
     arrow(200, 50, 228, 50) + arrow(420, 50, 448, 50) + arrow(640, 50, 668, 50, '', 'accent') + arrow(760, 158, 760, 82)),
 
@@ -87,7 +87,7 @@ export const caseStudies = [
   {
     slug: 'cells', number: '01', title: 'A new region is a new cell, not a bigger cluster',
     summary: 'A platform that grows by adding identical, isolated cells, each with its own network and cluster, built from one reviewed definition.',
-    topics: ['aws', 'terraform', 'terramate', 'kubernetes', 'gitops', 'flux'],
+    topics: ['aws', 'pulumi', 'kubernetes', 'gitops', 'flux'],
     role: 'Designed the cell model, its infrastructure code and the bridge to GitOps.',
     diagram: 'cell',
     sections: [
@@ -128,7 +128,7 @@ export const caseStudies = [
   {
     slug: 'guardrails', number: '04', title: 'Guardrails an account inherits on day one',
     summary: 'Organization-wide guardrails consolidated from per-account copies into one baseline, changed only with evidence that nothing legitimate breaks.',
-    topics: ['aws', 'security', 'terraform'],
+    topics: ['aws', 'security', 'pulumi'],
     role: 'Audited the existing policies, designed the target layout and the rollout, built the verification tooling.',
     diagram: 'guardrails',
     sections: [
@@ -155,15 +155,15 @@ export const caseStudies = [
   },
   {
     slug: 'delivery', number: '06', title: 'Nobody applies from a laptop',
-    summary: 'Infrastructure delivery where every change shows its plan, is checked against security policy, is applied only after approval, and drift is found the next morning.',
-    topics: ['cicd', 'atlantis', 'terraform', 'terramate', 'aws', 'security'],
-    role: 'Designed the CI identities and the reusable pipeline library. The platform adds policy checks on plans, signed images and admission-time verification.',
+    summary: 'Infrastructure delivery where every change shows a preview, is checked against security policy, is applied only from reviewed, merged code, and drift is found on a schedule.',
+    topics: ['cicd', 'pulumi', 'aws', 'security'],
+    role: 'Designed the CI identities and the reusable pipeline library. The platform adds policy checks on every preview and update, signed images and admission-time verification.',
     diagram: 'delivery',
     sections: [
       ['The problem', 'Applies from laptops mean unreviewed changes, credentials on laptops and no record of what was applied when. Console fixes become the new normal until the next apply silently reverts them.'],
-      ['The approach', 'Every changed stack is planned on the pull request and the plan is checked against security policy before it may run. Only an approved, current pull request applies, and exactly the plan that was reviewed. The policies cannot be weakened by the change they judge.'],
+      ['The approach', 'Infrastructure is tested code. Every change gets a read-only preview on the pull request, checked against security policy. Only reviewed, merged code is applied, by a deployment service with its own identity; production waits for a person. The policies cannot be weakened by the change they judge.'],
       ['Identity and supply chain', 'No long-lived keys anywhere. Third-party code is pinned, images are scanned, described and signed, and clusters admit only images the organization built.'],
-      ['What changed', 'The plan a reviewer approves is the plan that runs, and security rules are enforced on the plan itself rather than remembered by reviewers.']
+      ['What changed', 'Only the code a reviewer approved reaches an account, and security rules are enforced on every change rather than remembered by reviewers.']
     ],
     available: 'Platform · CI/CD module, also sold on its own'
   },
@@ -200,14 +200,14 @@ export const caseStudies = [
 export const platform = {
   tiers: [
     {id: 'platform', name: 'Platform', page: 'platform.html', lead: 'You have a product. You need somewhere production-grade to run it.',
-      items: ['AWS organization and landing zone', 'A cell: VPC, EKS on Graviton, Cilium, Karpenter', 'GitOps with Flux; Terraform and Terramate for AWS', 'Atlantis: plans on pull requests, policy checks, approved applies, drift detection', 'Prometheus, Grafana, Loki and Tempo with alerts as code', 'Architecture guide, runbooks and a handover week']},
+      items: ['AWS organization and landing zone', 'A cell: VPC, EKS on Graviton, Cilium, Karpenter', 'GitOps with Flux; AWS as tested Go code on Pulumi', 'Previews on pull requests, a mandatory policy pack, reviewed deployments, drift detection', 'Prometheus, Grafana, Loki and Tempo with alerts as code', 'Architecture guide, runbooks and a handover week']},
     {id: 'secure', name: 'Secure', page: 'secure.html', lead: 'Everything in Platform, plus the controls auditors and attackers both test first.',
       items: ['Organization guardrails: SCPs and RCPs with offline tests', 'Admission policy, tested both ways, enforced in production', 'Default-deny network policy with declared capabilities', 'One controlled path to the internet', 'Secrets with rotation; backups with tested restores', 'Evidence pack mapped to CIS and AWS Foundational Security Best Practices']},
     {id: 'ai-factory', name: 'AI Factory', page: 'ai-factory.html', lead: 'Agents that operate production and fix your CI, on top of Secure or alongside a platform you already run. For enterprises.',
       items: ['SRE agent: investigates every alert, reports cause and evidence', 'DevSecOps agent: turns findings into fixes as pull requests', 'CI agents: adapt the code when a dependency update breaks the build', 'Agents act on plans a named person approves, with access that exists only for that plan', 'Autonomy earned per kind of action from a reviewed record', 'Agents in their own cluster, outside your production', 'Full audit, from the alert to the approver']}
   ],
   modules: [
-    ['CI/CD foundation', 'Atlantis with policy checks, reusable pipelines, OIDC to AWS, signed images, drift detection.'],
+    ['CI/CD foundation', 'Reviewed infrastructure deployments with a policy pack, reusable pipelines, OIDC to AWS, signed images, drift detection.'],
     ['AWS guardrails', 'SCPs and RCPs, permission boundaries, a dry run against your CloudTrail history.'],
     ['Kubernetes hardening', 'Admission policy, default-deny network policy, workload identity.'],
     ['Controlled egress', 'One allowlisted path out for clusters and CI runners.'],
