@@ -35,15 +35,15 @@ const plan = [
 
 // Where each note-only article lives in the packages.
 const packageOf = {
-  'gitops-bridge-flux': 'Launch package · every cell',
-  'cilium-from-the-first-node': 'Launch package · every cell',
-  'one-role-for-every-service': 'Launch package · every cell',
-  'nodes-without-internet': 'Secure package',
-  'three-products-one-repository': 'How every package is delivered',
-  'upgrades-through-a-baseline-branch': 'Every package · delivered under a support plan',
-  'ci-agents': 'Autonomous operations · for enterprises',
-  'autonomy-levels': 'Autonomous operations · autonomy assessment',
-  'agents-only-production': 'Autonomous operations · for enterprises',
+  'gitops-bridge-flux': 'Platform · every cell',
+  'cilium-from-the-first-node': 'Platform · every cell',
+  'one-role-for-every-service': 'Platform · every cell',
+  'nodes-without-internet': 'Secure',
+  'three-products-one-repository': 'How every level is delivered',
+  'upgrades-through-a-baseline-branch': 'Every level · delivered under a support plan',
+  'ci-agents': 'AI Factory · for enterprises',
+  'autonomy-levels': 'AI Factory · autonomy assessment',
+  'agents-only-production': 'AI Factory · for enterprises',
 };
 
 export const articles = plan.map(([slug, cs, ns], i) => {

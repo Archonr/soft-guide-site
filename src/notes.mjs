@@ -48,7 +48,7 @@ export const notes = [
   {
     slug: 'one-way-to-the-internet',
     title: 'One way out to the internet, several fences around it',
-    summary: 'How the Secure package makes a cluster unable to reach the internet except through one allowlisting exit, and why one control is never enough.',
+    summary: 'How the Secure level makes a cluster unable to reach the internet except through one allowlisting exit, and why one control is never enough.',
     topics: ['aws', 'kubernetes', 'cilium', 'envoy', 'security'],
     body: [
       h('The problem'),
@@ -182,7 +182,7 @@ export const notes = [
     topics: ['aws', 'kubernetes', 'security'],
     body: [
       h('Why bother'),
-      p(`If a node can reach the internet, so can anything that compromises it. In the Secure package, nodes and workloads have no route out at all. That only works if nodes can still boot, join the cluster and pull images.`),
+      p(`If a node can reach the internet, so can anything that compromises it. In the Secure level, nodes and workloads have no route out at all. That only works if nodes can still boot, join the cluster and pull images.`),
       h('What makes it work'),
       ul(`Every cloud API a node needs is reached privately.`,
         `Third-party images are mirrored into your own registry, scanned continuously and expired when unused.`,
@@ -276,7 +276,7 @@ export const notes = [
         `<strong>Everything is recorded,</strong> in a form an auditor can follow from the alert to the approver.`),
       h('Getting there'),
       p(`Nobody switches human access off on day one. Agents earn trust level by level, and human access is narrowed as each kind of operation moves to the agents, with an audited emergency path for people that remains. See <a href="notes-autonomy-levels.html">the six levels of operations autonomy</a>.`),
-      p(`Available to enterprises as part of the Autonomous package.`),
+      p(`Available to enterprises in <a href="ai-factory.html">AI Factory</a>.`),
     ],
   },
 ];

@@ -47,10 +47,10 @@ document.addEventListener('keydown', (event) => {
   }
 });
 document.querySelector('[data-print]')?.addEventListener('click', () => window.print());
-// Contact: a Discuss link from Services or Platform names the topic in the email subject.
+// Contact: a Discuss link from a level page names the topic in the email subject.
 const mail = document.querySelector('[data-mail-subject]');
 if (mail) {
-  const topics = {aws: 'AWS architecture', kubernetes: 'Kubernetes', security: 'Security posture', automation: 'Delivery & IaC', launch: 'Platform: Launch', secure: 'Platform: Secure', autonomous: 'Platform: Autonomous'};
+  const topics = {aws: 'AWS architecture', kubernetes: 'Kubernetes', security: 'Security posture', automation: 'Delivery & IaC', agents: 'AI agents for operations', platform: 'Platform', secure: 'Secure', 'ai-factory': 'AI Factory'};
   const topic = topics[new URLSearchParams(location.search).get('service')];
   if (topic) {
     const url = new URL(mail.href);

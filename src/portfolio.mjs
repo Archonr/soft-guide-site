@@ -96,7 +96,7 @@ export const caseStudies = [
       ['The bridge', 'The facts a cell\'s workloads need are published once by the infrastructure code and consumed by GitOps, so the same manifests serve every cell and none of them names an account or a region.'],
       ['What changed', 'Blast radius became one cell. Upgrades roll cell by cell, development first. Creating a cell went from a project to a pull request.']
     ],
-    available: 'Launch package'
+    available: 'Platform'
   },
   {
     slug: 'egress', number: '02', title: 'One way out to the internet',
@@ -109,7 +109,7 @@ export const caseStudies = [
       ['The approach', 'Workloads have no route out. A single exit forwards only approved destinations and logs every refusal, and independent layers repeat the rule, so one mistake is caught by the next. Cloud APIs are reached privately and never leave the network.'],
       ['What changed', 'Leaving the network became a decision someone reviews, not a default. A new external dependency is a one-line change in a pull request, and an unexpected destination shows up as a refusal instead of a successful connection.']
     ],
-    available: 'Secure package · also sold on its own'
+    available: 'Secure · also sold on its own'
   },
   {
     slug: 'network-policy', number: '03', title: 'Network access a service declares, not one it inherits',
@@ -123,7 +123,7 @@ export const caseStudies = [
       ['Guardrails on the guardrails', 'Policies are applied by an identity that can do nothing else, CI refuses the rule shapes that quietly open everything, and dropped flows are reported so a missing rule becomes a ticket instead of a mystery timeout.'],
       ['What changed', 'Who may talk to whom became readable in one place and reviewable in one pull request. Broad rules were removed only after real traffic showed the replacement covered every flow.']
     ],
-    available: 'Secure package · Kubernetes hardening module'
+    available: 'Secure · Kubernetes hardening module'
   },
   {
     slug: 'guardrails', number: '04', title: 'Guardrails an account inherits on day one',
@@ -137,7 +137,7 @@ export const caseStudies = [
       ['Changing guardrails safely', 'Organization policies have no audit mode, so a broken one is found by an outage. Every change is tested offline, checked against how the organization really behaved, and introduced next to the old rules before anything is removed, production last.'],
       ['What changed', 'Dead and duplicated policies went first with no change in effective access, and the layout became a small set an engineer can read in one sitting. The evidence step caught a change that would have stopped production autoscaling before it shipped.']
     ],
-    available: 'Secure package · AWS guardrails module, also sold on its own'
+    available: 'Secure · AWS guardrails module, also sold on its own'
   },
   {
     slug: 'admission', number: '05', title: 'Admission policies that are proven to block',
@@ -151,7 +151,7 @@ export const caseStudies = [
       ['Tested both ways', 'Every policy ships with examples that must pass and examples that must be rejected by it. Development reports violations before production refuses them. Exceptions name an owner, a reason and an expiry.'],
       ['What changed', 'A policy that blocks nothing can no longer pass review. Admission became something teams can predict rather than a wall they discover at deploy time.']
     ],
-    available: 'Secure package · Kubernetes hardening module'
+    available: 'Secure · Kubernetes hardening module'
   },
   {
     slug: 'delivery', number: '06', title: 'Nobody applies from a laptop',
@@ -165,7 +165,7 @@ export const caseStudies = [
       ['Identity and supply chain', 'No long-lived keys anywhere. Third-party code is pinned, images are scanned, described and signed, and clusters admit only images the organization built.'],
       ['What changed', 'The plan a reviewer approves is the plan that runs, and security rules are enforced on the plan itself rather than remembered by reviewers.']
     ],
-    available: 'Launch package · CI/CD module, also sold on its own'
+    available: 'Platform · CI/CD module, also sold on its own'
   },
   {
     slug: 'sre-agent', number: '07', title: 'Agents that operate production within your rules',
@@ -179,7 +179,7 @@ export const caseStudies = [
       ['Autonomy, earned', 'Each kind of action starts behind approval and can run on its own only after a reviewed record of harmless runs, falling back to approval on the first mistake. The riskiest changes never become autonomous.'],
       ['What changed', 'Alerts arrive investigated, fixes arrive as plans or pull requests, and nobody, human or agent, holds standing write access to production. Every step is recorded.']
     ],
-    available: 'Autonomous package · for enterprises'
+    available: 'AI Factory · for enterprises'
   },
   {
     slug: 'networking-notes', number: '08', title: 'North-south, east-west, egress: three directions, three tools',
@@ -193,17 +193,17 @@ export const caseStudies = [
       ['Egress', 'A central exit that reads each request and can ask business logic before letting it out, with source-address control underneath it rather than instead of it.'],
       ['Mental models', 'eBPF is not L7, and the kernel cannot parse HTTP. Transparency is ergonomics; latency is hops. Gateway API is a specification, not a product.']
     ],
-    available: 'Architecture review · part of every package'
+    available: 'Architecture review · part of every level'
   }
 ].map(c => ({...c, figure: diagrams[c.diagram].replaceAll('id="fig-head', `id="${c.slug}-head`).replaceAll('url(#fig-head', `url(#${c.slug}-head`)}));
 
 export const platform = {
   tiers: [
-    {id: 'launch', name: 'Launch', lead: 'You have a product. You need somewhere production-grade to run it.',
+    {id: 'platform', name: 'Platform', page: 'platform.html', lead: 'You have a product. You need somewhere production-grade to run it.',
       items: ['AWS organization and landing zone', 'A cell: VPC, EKS on Graviton, Cilium, Karpenter', 'GitOps with Flux; Terraform and Terramate for AWS', 'Atlantis: plans on pull requests, policy checks, approved applies, drift detection', 'Prometheus, Grafana, Loki and Tempo with alerts as code', 'Architecture guide, runbooks and a handover week']},
-    {id: 'secure', name: 'Secure', lead: 'Everything in Launch, plus the controls auditors and attackers both test first.',
+    {id: 'secure', name: 'Secure', page: 'secure.html', lead: 'Everything in Platform, plus the controls auditors and attackers both test first.',
       items: ['Organization guardrails: SCPs and RCPs with offline tests', 'Admission policy, tested both ways, enforced in production', 'Default-deny network policy with declared capabilities', 'One controlled path to the internet', 'Secrets with rotation; backups with tested restores', 'Evidence pack mapped to CIS and AWS Foundational Security Best Practices']},
-    {id: 'autonomous', name: 'Autonomous', lead: 'Everything in Secure, plus agents that operate it and fix your CI. For enterprises.',
+    {id: 'ai-factory', name: 'AI Factory', page: 'ai-factory.html', lead: 'Agents that operate production and fix your CI, on top of Secure or alongside a platform you already run. For enterprises.',
       items: ['SRE agent: investigates every alert, reports cause and evidence', 'DevSecOps agent: turns findings into fixes as pull requests', 'CI agents: adapt the code when a dependency update breaks the build', 'Agents act on plans a named person approves, with access that exists only for that plan', 'Autonomy earned per kind of action from a reviewed record', 'Agents in their own cluster, outside your production', 'Full audit, from the alert to the approver']}
   ],
   modules: [
