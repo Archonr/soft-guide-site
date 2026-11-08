@@ -12,7 +12,7 @@ const outcome = (c) => {
   return s ? `<h2>What it changes</h2><p>${s[1]}</p>` : '';
 };
 
-// [slug, case slug, note slug], in reading order.
+// [slug, case slug, note slug, extra old addresses], in reading order.
 const plan = [
   ['cells', 'cells', null],
   ['gitops-bridge-flux', null, 'gitops-bridge-flux'],
@@ -24,7 +24,7 @@ const plan = [
   ['guardrails', 'guardrails', 'guardrails-from-day-one'],
   ['one-role-for-every-service', null, 'one-role-for-every-service'],
   ['nodes-without-internet', null, 'nodes-without-internet'],
-  ['atlantis-delivery', 'delivery', 'atlantis-policy-checks'],
+  ['reviewed-delivery', 'delivery', 'reviewed-delivery', ['notes-atlantis-delivery.html', 'notes-atlantis-policy-checks.html']],
   ['three-products-one-repository', null, 'three-products-one-repository'],
   ['upgrades-through-a-baseline-branch', null, 'upgrades-through-a-baseline-branch'],
   ['sre-agent', 'sre-agent', 'an-sre-agent-inside-the-cluster'],
@@ -46,7 +46,7 @@ const packageOf = {
   'agents-only-production': 'AI Factory · for enterprises',
 };
 
-export const articles = plan.map(([slug, cs, ns], i) => {
+export const articles = plan.map(([slug, cs, ns, old = []], i) => {
   const c = cs && caseBy[cs];
   const n = ns && noteBy[ns];
   return {
@@ -60,6 +60,6 @@ export const articles = plan.map(([slug, cs, ns], i) => {
     package: c ? c.available : packageOf[slug],
     body: n ? n.body.join('') + (c ? outcome(c) : '') : sections(c.sections),
     // Old addresses that now point here.
-    aliases: [cs && `work-${cs}.html`, ns && `notes-${ns}.html`].filter((a) => a && a !== `notes-${slug}.html`),
+    aliases: [cs && `work-${cs}.html`, ns && `notes-${ns}.html`, ...old].filter((a) => a && a !== `notes-${slug}.html`),
   };
 });
